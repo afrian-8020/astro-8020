@@ -1,0 +1,109 @@
+---
+interface Props {
+	/** Label for the upper (baseline) curve */
+	topLabel: string;
+	/** Label for the lower (highlighted) curve */
+	bottomLabel: string;
+}
+
+const { topLabel, bottomLabel } = Astro.props;
+
+// Unique clip ids per instance: each curve is swept in left → right through its own clip rect
+const uid = crypto.randomUUID().slice(0, 8);
+const baseClip = `curve-base-${uid}`;
+const highlightClip = `curve-highlight-${uid}`;
+---
+
+<!--
+	Decorative: the stat is repeated in the card caption. Two declining curves; the highlighted one drops further.
+	Animates once on arrival and replays on card hover (script below): curves sweep in with their area, legend markers build alongside.
+-->
+<svg viewBox="0 0 448 320" class="block size-full" aria-hidden="true" data-curves>
+	<defs>
+		<clipPath id={baseClip}><rect x="0" y="0" width="448" height="320" data-curves-clip="base"></rect></clipPath>
+		<clipPath id={highlightClip}><rect x="0" y="0" width="448" height="320" data-curves-clip="highlight"></rect></clipPath>
+	</defs>
+
+	<g clip-path={`url(#${baseClip})`}>
+		<g transform="translate(24 80)" class="fill-surface-muted">
+			<path d="M170.083 55.9767C107.058 8.92223 37.5 0 0 0V199H400V138.086C354 143.804 242.895 110.338 170.083 55.9767Z"></path>
+			<path d="M170.083 86.9405C107.058 13.8576 37.5 0 0 0V209.676H400V189.618C354 198.5 242.895 171.372 170.083 86.9405Z"></path>
+		</g>
+		<path
+			transform="translate(24 68)"
+			d="M0 12C37.5 12 107.058 20.4124 170.083 64.7781C286.981 147.066 353.5 139.286 400 139.286"
+			fill="none"
+			stroke-width="24"
+			class="stroke-secondary"></path>
+	</g>
+	<g clip-path={`url(#${highlightClip})`}>
+		<path
+			transform="translate(24 68)"
+			d="M0 12C37.5 12 107.058 25.0657 170.083 93.9725C286.981 221.779 353.5 209.694 400 209.694"
+			fill="none"
+			stroke-width="24"
+			class="stroke-primary"></path>
+	</g>
+
+	<!-- Legend markers: dot + stem -->
+	<g class="fill-secondary">
+		<circle cx="36" cy="35" r="2.67" data-curves-dot="base"></circle>
+		<rect x="35.5" y="35" width="1" height="36" data-curves-stem="base"></rect>
+	</g>
+	<g class="fill-primary">
+		<circle cx="36" cy="272" r="2.67" data-curves-dot="highlight"></circle>
+		<rect x="35.5" y="87" width="1" height="185" data-curves-stem="highlight"></rect>
+	</g>
+
+	<text x="48" y="35" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase" data-curves-label="base">{topLabel}</text>
+	<text x="48" y="271" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase" data-curves-label="highlight"
+		>{bottomLabel}</text
+	>
+</svg>
+
+<script>
+	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { replayOnHover } from '../../../scripts/chart-hover';
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		document.querySelectorAll<SVGSVGElement>('[data-curves]').forEach((svg) => {
+			const pick = (attr: string, key: 'base' | 'highlight') => svg.querySelector<SVGElement>(`[data-curves-${attr}="${key}"]`)!;
+			const clip = { base: pick('clip', 'base'), highlight: pick('clip', 'highlight') };
+			const dot = { base: pick('dot', 'base'), highlight: pick('dot', 'highlight') };
+			const stem = { base: pick('stem', 'base'), highlight: pick('stem', 'highlight') };
+			const label = { base: pick('label', 'base'), highlight: pick('label', 'highlight') };
+
+			// Start state: curves fully clipped, legend collapsed
+			gsap.set([clip.base, clip.highlight], { attr: { width: 0 } });
+			gsap.set(dot.base, { scale: 0, svgOrigin: '36 35' });
+			gsap.set(dot.highlight, { scale: 0, svgOrigin: '36 272' });
+			gsap.set(stem.base, { scaleY: 0, svgOrigin: '36 35' }); // grows down from its dot
+			gsap.set(stem.highlight, { scaleY: 0, svgOrigin: '36 87' }); // grows down toward its dot
+			gsap.set([label.base, label.highlight], { opacity: 0 });
+
+			const SWEEP = { attr: { width: 448 }, duration: 1.4, ease: 'power2.inOut' };
+			const POP = { scale: 1, duration: 0.35, ease: 'back.out(3)' };
+			const FADE = { opacity: 1, duration: 0.5, ease: 'power2.out' };
+
+			const tl = gsap
+				.timeline({ paused: true })
+				// Curves sweep in left → right; the highlight breaks away a beat later
+				.to(clip.base, SWEEP, 0)
+				.to(clip.highlight, SWEEP, 0.2)
+				// Baseline legend: dot pops, stem drops to the curve, label fades in
+				.to(dot.base, POP, 0.1)
+				.to(stem.base, { scaleY: 1, duration: 0.4, ease: 'power2.out' }, 0.25)
+				.to(label.base, FADE, 0.15)
+				// Highlight legend: stem runs down to the bottom, dot lands, label fades in
+				.to(stem.highlight, { scaleY: 1, duration: 0.7, ease: 'power2.inOut' }, 0.5)
+				.to(dot.highlight, POP, 1.15)
+				.to(label.highlight, FADE, 1.1);
+
+			ScrollTrigger.create({ trigger: svg, start: '20% bottom', once: true, onEnter: () => tl.play() });
+			replayOnHover(svg, tl);
+		});
+	}
+</script>

@@ -1,0 +1,72 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	quote: string;
+	author: string;
+	image: ImageMetadata;
+	imageAlt: string;
+	/**
+	 * Highlighted result, e.g. { value: '70lbs', label: 'lighter and thriving' }.
+	 * With `countFrom`, the number in `value` counts up from it, starting with the portrait's reveal.
+	 */
+	stat?: { value: string; label: string; countFrom?: number };
+	class?: string;
+}
+
+const { quote, author, image, imageAlt, stat, class: className } = Astro.props;
+
+// Split "70lbs" into prefix / number / suffix so only the number counts
+const statParts = stat?.value.match(/^(\D*)(\d+)(.*)$/);
+---
+
+<!-- Optional `controls` slot renders bottom-right (e.g. slider arrows) -->
+<article class:list={['flex flex-col text-ink md:h-110 md:flex-row', className]} data-count-scope>
+	<!-- White base stays put while the portrait's mask grows over it (image reveal: src/scripts/image-reveal.ts) -->
+	<div class="relative aspect-4/3 shrink-0 bg-surface-white md:aspect-auto md:w-83.25">
+		<div class="absolute inset-0 overflow-hidden bg-surface-inverse" data-image-reveal>
+			<Image
+				src={image}
+				alt={imageAlt}
+				widths={[400, 800, 1125]}
+				sizes="(min-width: 768px) 660px, 100vw"
+				class="absolute inset-0 size-full object-cover object-[14%_center]"
+			/>
+		</div>
+	</div>
+
+	<div class="flex flex-1 flex-col justify-between gap-10 bg-surface-white p-6 md:p-10">
+		<figure class="flex max-w-163.75 flex-col gap-4">
+			<blockquote class="text-body-lg md:text-quote">
+				<p data-reveal>{quote}</p>
+			</blockquote>
+			<figcaption class="text-body" data-reveal>— {author}</figcaption>
+		</figure>
+
+		<div class="flex items-end justify-between gap-6">
+			{
+				stat && (
+					<p class="flex flex-col gap-2 text-ink-accent">
+						<!-- Revealed with the first text so the count-up (synced to the portrait) is visible from its first frame -->
+						<span class="font-display text-h3 font-light md:text-h2" data-reveal data-reveal-start>
+							{statParts && stat.countFrom !== undefined ? (
+								<>
+									{statParts[1]}
+									<span class="tabular-nums" data-count-from={stat.countFrom} data-count-to={statParts[2]} data-count-with="image">
+										{statParts[2]}
+									</span>
+									{statParts[3]}
+								</>
+							) : (
+								stat.value
+							)}
+						</span>
+						<span class="text-body" data-reveal>{stat.label}</span>
+					</p>
+				)
+			}
+			<slot name="controls" />
+		</div>
+	</div>
+</article>

@@ -1,0 +1,40 @@
+---
+import type { ComponentProps } from 'astro/types';
+import Container from '../ui/Container.astro';
+import ArticleCard from '../patterns/ArticleCard.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+	moreLink?: { href: string; label: string };
+	articles: Omit<ComponentProps<typeof ArticleCard>, 'class'>[];
+}
+
+const { title, description, moreLink, articles } = Astro.props;
+---
+
+<section class="bg-surface py-20 text-ink lg:py-30">
+	<Container class="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
+		<header class="flex max-w-111.75 flex-col items-start gap-8">
+			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
+			{description && <p class="text-body" data-reveal>{description}</p>}
+			{
+				moreLink && (
+					<a href={moreLink.href} class="text-body hover:underline" data-reveal>
+						{moreLink.label}
+					</a>
+				)
+			}
+		</header>
+
+		<ul class="flex flex-col gap-4 lg:w-171">
+			{
+				articles.map((article, i) => (
+					<li class:list={[i > 0 && 'border-t border-surface-inverse/10 pt-4']}>
+						<ArticleCard {...article} />
+					</li>
+				))
+			}
+		</ul>
+	</Container>
+</section>

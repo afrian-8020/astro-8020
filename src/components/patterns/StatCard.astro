@@ -1,0 +1,35 @@
+---
+interface Props {
+	/** The stat in words — also serves as the accessible description of the visual */
+	caption: string;
+	/** Max width for the caption so it wraps like the design (a Tailwind max-w-* class) */
+	captionClass?: string;
+	class?: string;
+}
+
+const { caption, captionClass = 'max-w-72', class: className } = Astro.props;
+
+// Keep hyphenated terms (e.g. "GLP-1s", "weight-loss") on one line, as in the design
+const words = caption.split(' ');
+---
+
+<!-- Inside a `group/stats` grid, the other cards fade to 20% while one is hovered -->
+<figure
+	class:list={[
+		'flex flex-col items-center gap-6 overflow-hidden bg-surface-white pb-6 text-ink transition-opacity duration-500 ease-in-out [@media(hover:hover)]:group-has-[figure:hover]/stats:[&:not(:hover)]:opacity-20',
+		className,
+	]}
+>
+	<!-- Visual keeps the 448×320 design ratio and never grows past it -->
+	<div class="aspect-448/320 w-full max-w-112">
+		<slot />
+	</div>
+	<figcaption class:list={['text-center text-body', captionClass]} data-reveal>
+		{words.map((word, i) => (
+			<>
+				{word.includes('-') ? <span class="whitespace-nowrap">{word}</span> : word}
+				{i < words.length - 1 && ' '}
+			</>
+		))}
+	</figcaption>
+</figure>

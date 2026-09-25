@@ -1,0 +1,31 @@
+---
+import type { ComponentProps } from 'astro/types';
+import Container from '../ui/Container.astro';
+import ComparisonTable from '../patterns/ComparisonTable.astro';
+import InlineCta from '../patterns/InlineCta.astro';
+
+type TableProps = ComponentProps<typeof ComparisonTable>;
+
+interface Props {
+	title: string;
+	description?: string;
+	columns: TableProps['columns'];
+	rows: TableProps['rows'];
+	cta?: ComponentProps<typeof InlineCta>;
+}
+
+const { title, description, columns, rows, cta } = Astro.props;
+---
+
+<section class="bg-surface pt-10 pb-20 text-ink lg:pb-30">
+	<Container class="flex flex-col gap-14">
+		<header class="flex max-w-169 flex-col gap-8">
+			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
+			{description && <p class="max-w-138.75 text-body" data-reveal>{description}</p>}
+		</header>
+
+		<ComparisonTable caption={title} columns={columns} rows={rows} />
+
+		{cta && <InlineCta {...cta} />}
+	</Container>
+</section>

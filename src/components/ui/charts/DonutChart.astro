@@ -1,0 +1,128 @@
+---
+interface Props {
+	/** Large figure in the center, e.g. "-20%" */
+	value: string;
+	/** Small uppercase label under the value */
+	label?: string;
+}
+
+const { value, label } = Astro.props;
+
+// Ring geometry (448×320 canvas, centered): radius 100, stroke 24
+const cx = 224;
+const cy = 160;
+const r = 100;
+
+// Unique mask id per instance (the dotted guide is revealed through it)
+const maskId = `donut-dots-${crypto.randomUUID().slice(0, 8)}`;
+const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8 125.7 141.5';
+---
+
+<!-- Decorative: the stat is repeated in the card caption. Animates once on arrival and replays on card hover (script below). -->
+<svg viewBox="0 0 448 320" class="block size-full" aria-hidden="true" data-donut>
+	<defs>
+		<mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="448" height="320">
+			<path d={dotsPath} fill="none" stroke="white" stroke-width="8" stroke-linecap="round" data-donut-dots-mask></path>
+		</mask>
+	</defs>
+
+	<circle cx={cx} cy={cy} r="122" class="fill-surface-muted" data-donut-disc></circle>
+	<!-- Ring as two counter-clockwise half arcs from 12 o'clock, so it draws in the same direction as the highlight -->
+	<path
+		d={`M${cx} ${cy - r} A${r} ${r} 0 0 0 ${cx} ${cy + r} A${r} ${r} 0 0 0 ${cx} ${cy - r}`}
+		fill="none"
+		stroke-width="24"
+		stroke-linecap="round"
+		class="stroke-secondary"
+		data-donut-ring></path>
+	<!-- Highlight arc: 12 o'clock → 9 o'clock -->
+	<path
+		d={`M${cx} ${cy - r} A${r} ${r} 0 0 0 ${cx - r} ${cy}`}
+		fill="none"
+		stroke-width="24"
+		stroke-linecap="round"
+		class="stroke-primary"
+		data-donut-arc></path>
+	<!-- Dotted track inside the arc, ending in a chevron -->
+	<path d={dotsPath} fill="none" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 9" class="stroke-white" mask={`url(#${maskId})`}
+	></path>
+	<g data-donut-chevron>
+		<path
+			d="M-5.6 -2.8L0 2.8L5.6 -2.8"
+			transform="translate(124.4 148.8) rotate(7.34)"
+			fill="none"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class="stroke-surface"></path>
+	</g>
+
+	<text x={cx} y="149.5" text-anchor="middle" dominant-baseline="central" class="fill-ink font-display text-h3 font-light" data-donut-value
+		>{value}</text
+	>
+	{
+		label && (
+			<text x={cx} y="188" text-anchor="middle" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase" data-donut-label>
+				{label}
+			</text>
+		)
+	}
+</svg>
+
+<script>
+	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { replayOnHover } from '../../../scripts/chart-hover';
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		document.querySelectorAll<SVGSVGElement>('[data-donut]').forEach((svg) => {
+			const q = <T extends SVGElement>(name: string) => svg.querySelector<T>(`[data-donut-${name}]`);
+			const disc = q('disc');
+			const ring = q<SVGPathElement>('ring')!;
+			const arc = q<SVGPathElement>('arc')!;
+			const dotsMask = q<SVGPathElement>('dots-mask')!;
+			const chevron = q('chevron');
+			const value = q('value')!;
+			const label = q('label');
+
+			// "-20%" → count 0 → -20, keeping any prefix/suffix
+			const [, prefix = '', target = '0', suffix = ''] = value.textContent!.match(/^(\D*?)(-?\d+)(.*)$/) ?? [];
+			const count = { n: 0 };
+			const renderCount = () => (value.textContent = `${prefix}${Math.round(count.n)}${suffix}`);
+
+			// Stroke "drawing": dash the length of the path, then slide the dash into view
+			const draw = (el: SVGGeometryElement) => {
+				const length = el.getTotalLength();
+				gsap.set(el, { strokeDasharray: length, strokeDashoffset: length });
+			};
+			[ring, arc, dotsMask].forEach(draw);
+
+			gsap.set(disc, { scale: 0.85, opacity: 0, svgOrigin: '224 160' });
+			gsap.set(arc, { opacity: 0 });
+			gsap.set(chevron, { scale: 0, opacity: 0, svgOrigin: '124.4 148.8' });
+			gsap.set([value, label].filter(Boolean), { opacity: 0 });
+			renderCount();
+
+			const tl = gsap
+				.timeline({ paused: true })
+				// 1. Backdrop eases in
+				.to(disc, { scale: 1, opacity: 1, duration: 0.8, ease: 'power2.out' }, 0)
+				// 2. Both strokes draw counter-clockwise from 12 o'clock — the highlight a beat after the ring
+				.to(ring, { strokeDashoffset: 0, duration: 1.1, ease: 'power2.inOut' }, 0.1)
+				.to(arc, { opacity: 1, duration: 0.15 }, 0.3)
+				.to(arc, { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut' }, 0.3)
+				// 3. The figure counts to its value alongside the highlight
+				.to(value, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.2)
+				.to(label ?? {}, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.35)
+				.to(count, { n: Number(target), duration: 0.9, ease: 'power2.out', onUpdate: renderCount }, 0.3)
+				// 4. Dotted guide traces behind it, 5. chevron pops in at the end
+				.to(dotsMask, { strokeDashoffset: 0, duration: 0.6, ease: 'power1.out' }, 0.95)
+				.to(chevron, { scale: 1, opacity: 1, duration: 0.45, ease: 'back.out(2.5)' }, 1.4);
+
+			ScrollTrigger.create({ trigger: svg, start: '20% bottom', once: true, onEnter: () => tl.play() });
+			replayOnHover(svg, tl, renderCount);
+		});
+	}
+</script>

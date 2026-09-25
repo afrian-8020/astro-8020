@@ -1,0 +1,22 @@
+---
+import StatusIcon from '../ui/StatusIcon.astro';
+
+interface Props {
+	label: string;
+	/** One entry per compared column, in column order */
+	values: boolean[];
+}
+
+const { label, values } = Astro.props;
+---
+
+<tr class="border-t border-surface-inverse/10 last:border-b">
+	<th scope="row" class="py-4 pr-4 text-left align-middle text-body-sm font-normal md:text-body" data-reveal data-reveal-delay="0.08">{label}</th>
+	{
+		values.map((included) => (
+			<td class="py-4 text-center align-middle leading-none">
+				<StatusIcon included={included} />
+			</td>
+		))
+	}
+</tr>

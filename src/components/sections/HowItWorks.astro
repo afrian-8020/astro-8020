@@ -1,0 +1,49 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import type { ComponentProps } from 'astro/types';
+import StepList from '../patterns/StepList.astro';
+
+type StepListProps = ComponentProps<typeof StepList>;
+
+interface Props {
+	eyebrow?: string;
+	title: string;
+	image: ImageMetadata;
+	imageAlt: string;
+	steps: StepListProps['steps'];
+	activeStep?: StepListProps['activeIndex'];
+}
+
+const { eyebrow, title, image, imageAlt, steps, activeStep = 0 } = Astro.props;
+---
+
+<!-- Split layout: image half bleeds to the left edge; content half aligns its right edge with the page container -->
+<!--
+	Desktop: at least 110% of the viewport tall, with extra bottom padding so the accordion stays readable before the next section arrives.
+	data-stack: while the next section slides over it, this one scrolls at half speed and dims to 40% black (src/scripts/stack.ts)
+-->
+<section class="theme-dark grid bg-surface text-ink lg:min-h-[110svh] lg:grid-cols-2" data-stack="0.5" data-stack-dim="0.4">
+	<!-- Image reveal on arrival (src/scripts/image-reveal.ts) -->
+	<div class="relative aspect-4/3 overflow-hidden bg-surface-white lg:aspect-auto" data-image-reveal>
+		<Image
+			src={image}
+			alt={imageAlt}
+			widths={[640, 1024, 1512]}
+			sizes="(min-width: 1024px) 50vw, 100vw"
+			class="absolute inset-0 size-full object-cover object-[52%_center]"
+		/>
+	</div>
+
+	<div
+		class="flex flex-col justify-between gap-16 px-4 py-16 sm:px-6 lg:justify-center lg:gap-30 lg:pt-20 lg:pb-60 lg:pr-[max(--spacing(6),calc((100vw-var(--container-content))/2))] lg:pl-20"
+	>
+		<header class="flex max-w-112.25 flex-col gap-6">
+			{eyebrow && <p class="text-body" data-reveal>{eyebrow}</p>}
+			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
+		</header>
+
+		<StepList steps={steps} activeIndex={activeStep} />
+	</div>
+</section>
+

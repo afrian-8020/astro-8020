@@ -1,0 +1,51 @@
+---
+import StepNumber from '../ui/StepNumber.astro';
+
+interface Props {
+	/** Unique id used to link the trigger to its panel */
+	id: string;
+	number: number;
+	title: string;
+	description?: string;
+	/** Open state: full opacity, full white line, description visible. Inactive steps are dimmed. */
+	active?: boolean;
+}
+
+const { id, number, title, description, active = false } = Astro.props;
+const panelId = `${id}-panel`;
+---
+
+<li
+	class="group relative border-t border-border-strong pt-3.75 text-ink opacity-40 transition-opacity duration-500 not-data-active:hover:opacity-60 data-active:opacity-100 lg:pr-40"
+	data-step
+	data-active={active ? '' : undefined}
+>
+	<!-- Progress bar over the top line: full on the open step without JS; StepList animates it as a timer -->
+	<span
+		class="pointer-events-none absolute inset-x-0 -top-px h-px origin-left bg-ink"
+		style={active ? undefined : 'transform: scaleX(0)'}
+		aria-hidden="true"
+		data-step-progress></span>
+
+	<h3 class="font-sans font-normal">
+		<button
+			type="button"
+			id={id}
+			class="flex w-full cursor-pointer items-start gap-6 text-left text-body focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+			aria-expanded={active ? 'true' : 'false'}
+			aria-controls={description ? panelId : undefined}
+			data-step-trigger
+		>
+			<StepNumber value={number} aria-hidden="true" />
+			<!-- 4px top padding centers a one-line title on the 32px number; it eases away when the step opens -->
+			<span class="flex-1 pt-1 transition-[padding] duration-500 group-data-active:pt-0">{title}</span>
+		</button>
+	</h3>
+	{
+		description && (
+			<div id={panelId} role="region" aria-labelledby={id} class="overflow-hidden" hidden={!active} data-step-panel>
+				<p class="pt-2 pl-14 text-body">{description}</p>
+			</div>
+		)
+	}
+</li>

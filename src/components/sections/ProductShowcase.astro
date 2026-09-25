@@ -1,0 +1,42 @@
+---
+import type { ComponentProps } from 'astro/types';
+import Container from '../ui/Container.astro';
+import Carousel from '../patterns/Carousel.astro';
+import CarouselItem from '../patterns/CarouselItem.astro';
+import ProductCard from '../patterns/ProductCard.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+	products: ComponentProps<typeof ProductCard>[];
+	browseLink?: { href: string; label: string };
+}
+
+const { title, description, products, browseLink } = Astro.props;
+---
+
+<section class="overflow-x-clip bg-surface py-20 text-ink lg:py-30">
+	<Container class="flex flex-col gap-10">
+		<header class="mx-auto flex max-w-169 flex-col items-center gap-8 text-center">
+			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
+			{description && <p class="max-w-112 text-body" data-reveal>{description}</p>}
+		</header>
+
+		<Carousel label={title}>
+			{
+				products.map((product) => (
+					<CarouselItem class="w-4/5 sm:w-141.5">
+						<ProductCard {...product} class="h-full" />
+					</CarouselItem>
+				))
+			}
+			{
+				browseLink && (
+					<a slot="aside" href={browseLink.href} class="text-body hover:underline">
+						{browseLink.label}
+					</a>
+				)
+			}
+		</Carousel>
+	</Container>
+</section>

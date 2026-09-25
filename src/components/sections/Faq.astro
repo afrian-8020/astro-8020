@@ -1,0 +1,34 @@
+---
+import type { ComponentProps } from 'astro/types';
+import Container from '../ui/Container.astro';
+import FaqItem from '../patterns/FaqItem.astro';
+
+interface Props {
+	title: string;
+	items: Omit<ComponentProps<typeof FaqItem>, 'group'>[];
+	/** Legal footnotes under the list; use "\n" inside a string for a line break without a gap */
+	footnotes?: string[];
+}
+
+const { title, items, footnotes = [] } = Astro.props;
+---
+
+<section class="bg-surface py-20 text-ink lg:py-30">
+	<Container>
+		<div class="mx-auto flex max-w-230 flex-col gap-14 lg:gap-20">
+			<h2 class="text-center text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
+
+			<div class="flex flex-col gap-4">
+				{items.map((item) => <FaqItem {...item} group="faq" />)}
+			</div>
+
+			{
+				footnotes.length > 0 && (
+					<div class="flex flex-col gap-4.5 text-body-xs whitespace-pre-line text-ink-muted">
+						{footnotes.map((note) => <p>{note}</p>)}
+					</div>
+				)
+			}
+		</div>
+	</Container>
+</section>

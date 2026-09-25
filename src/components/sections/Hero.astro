@@ -1,0 +1,66 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BadgeCheck from '../../assets/icons/badge-check.svg';
+import Container from '../ui/Container.astro';
+import Badge from '../ui/Badge.astro';
+import Button from '../ui/Button.astro';
+import FeatureItem from '../patterns/FeatureItem.astro';
+
+interface Props {
+	title: string;
+	description: string;
+	image: ImageMetadata;
+	imageAlt: string;
+	badge?: string;
+	cta?: { href: string; label: string };
+	features?: { title: string; description: string }[];
+}
+
+const { title, description, image, imageAlt, badge, cta, features = [] } = Astro.props;
+---
+
+<section class="theme-dark relative isolate flex min-h-svh overflow-hidden bg-surface pt-24 pb-10 lg:min-h-205">
+	<Image
+		src={image}
+		alt={imageAlt}
+		widths={[640, 1024, 1456]}
+		sizes="100vw"
+		loading="eager"
+		fetchpriority="high"
+		class="absolute inset-0 -z-10 size-full max-w-none object-cover object-[70%_center] lg:inset-auto lg:top-[-27.93%] lg:left-[-18.96%] lg:h-[128.9%] lg:w-[132.08%]"
+	/>
+	<!-- Keeps text legible on tablet, where the copy sits over the brightest part of the photo -->
+	<div class="absolute inset-0 -z-10 hidden bg-surface/40 md:block lg:hidden" aria-hidden="true"></div>
+
+	<!-- Mobile: centered lockup, vertically centered, no feature row. Tablet+: left-aligned with features at the bottom. -->
+	<Container class="flex flex-1 flex-col justify-center gap-16 md:justify-between">
+		<div class="flex max-w-186.25 flex-col items-center gap-10 text-center md:items-start md:text-left">
+			{
+				badge && (
+					<Badge>
+						<BadgeCheck slot="icon" class="size-4" aria-hidden="true" />
+						{badge}
+					</Badge>
+				)
+			}
+			<h1 class="text-h3 md:text-h2 lg:max-w-169 lg:text-h1" data-reveal>{title}</h1>
+			<div class="flex max-w-163.5 flex-col items-center gap-6 md:items-start">
+				<p class="text-body-lg" data-reveal>{description}</p>
+				{cta && <Button href={cta.href} reveal>{cta.label}</Button>}
+			</div>
+		</div>
+
+		{
+			features.length > 0 && (
+				<ul class="hidden gap-6 md:grid md:max-w-259.5 md:grid-cols-3">
+					{features.map((feature) => (
+						<li>
+							<FeatureItem {...feature} />
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</Container>
+</section>

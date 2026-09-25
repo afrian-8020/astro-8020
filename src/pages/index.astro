@@ -1,11 +1,241 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import Hero from '../components/sections/Hero.astro';
+import ProductShowcase from '../components/sections/ProductShowcase.astro';
+import Comparison from '../components/sections/Comparison.astro';
+import HowItWorks from '../components/sections/HowItWorks.astro';
+import Science from '../components/sections/Science.astro';
+import StatCard from '../components/patterns/StatCard.astro';
+import DonutChart from '../components/ui/charts/DonutChart.astro';
+import CurveChart from '../components/ui/charts/CurveChart.astro';
+import BarChart from '../components/ui/charts/BarChart.astro';
+import Testimonial from '../components/sections/Testimonial.astro';
+import Articles from '../components/sections/Articles.astro';
+import Cta from '../components/sections/Cta.astro';
+import Faq from '../components/sections/Faq.astro';
+import testimonialBg from '../assets/testimonial-bg.png';
+import scottImage from '../assets/testimonials/scott.png';
+import pancreatitisImage from '../assets/articles/pancreatitis.png';
+import sideEffectsImage from '../assets/articles/side-effects.png';
+import qsymiaImage from '../assets/articles/qsymia.png';
+import ctaImage from '../assets/cta.png';
+import heroImage from '../assets/hero.png';
+import wegovyImage from '../assets/products/wegovy.png';
+import zepboundImage from '../assets/products/zepbound.png';
+import metforminImage from '../assets/products/metformin.png';
+import howItWorksImage from '../assets/how-it-works.png';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const productCtas = {
+	disclosure: { href: '#', label: 'See safety disclosures' },
+	primaryCta: { href: '#', label: 'Get started' },
+	secondaryCta: { href: '#', label: 'Learn more' },
+};
+
+// The carousel shows the three products twice (1, 2, 3, 1, 2, 3)
+const products = [
+	{
+		name: 'Wegovy',
+		registered: true,
+		badges: [{ label: 'Semaglutide' }],
+		image: wegovyImage,
+		imageAlt: 'Wegovy injection pen',
+		...productCtas,
+	},
+	{
+		name: 'Zepbound',
+		registered: true,
+		badges: [{ label: 'Tirzepatide' }],
+		image: zepboundImage,
+		imageAlt: 'Zepbound vial and injection pen',
+		...productCtas,
+	},
+	{
+		name: 'Metformin',
+		registered: true,
+		badges: [{ label: 'Oral' }, { label: 'FSA & HSA eligible', variant: 'success' }],
+		image: metforminImage,
+		imageAlt: 'Metformin prescription bottle',
+		...productCtas,
+	},
+];
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout title="Home">
+	<Navbar slot="header" overlay />
+
+	<Hero
+		badge="FSA & HSA eligible"
+		title="Weight-loss medication, powered by real change"
+		description="Noom Med makes weight loss easier with fast access to GLP-1s, proven lifestyle coaching, and results that go beyond medication alone."
+		cta={{ href: '#', label: 'See if you’re eligible' }}
+		image={heroImage}
+		imageAlt="Smiling woman stretching her arms overhead against a blue sky"
+		features={[
+			{
+				title: 'Fast access',
+				description: 'Get prescribed GLP-1s and have them shipped to your door in as little as seven days.',
+			},
+			{
+				title: 'Better results',
+				description: 'Lose nearly 50% more weight with Noom Med compared to medication alone.',
+			},
+			{
+				title: 'Doctor-backed',
+				description: '97% of physicians recommend pairing GLP-1s with lifestyle changes for lasting success.',
+			},
+		]}
+	/>
+
+	<ProductShowcase
+		title="Discover the right weight-loss medication for you"
+		description="Our clinical team offers a wide array of medications to give the best treatment to those who qualify."
+		browseLink={{ href: '#', label: 'Browse our products' }}
+		products={[...products, ...products]}
+	/>
+	<Comparison
+		title="Noom is more than medication"
+		description="Noom provides the right medication and tailored support so you can lose the weight, keep it off, and potentially one day live med free."
+		columns={[{ label: 'Noom Med', brand: { sublabel: 'MED' } }, { label: 'Medication only' }]}
+		rows={[
+			{ label: 'Weight-loss medication shipped to your door, if prescribed*', values: [true, false] },
+			{ label: '100% online access to licensed clinicians', values: [true, false] },
+			{ label: 'Keep the muscle with our Muscle Defense™ program', values: [true, false] },
+			{ label: 'Tools to support healthy habits and track your progress', values: [true, false] },
+			{ label: 'Supportive coaches and community', values: [true, false] },
+			{ label: 'Personalized dosing to minimize side effects', values: [true, false] },
+		]}
+		cta={{ text: 'Start your journey beyond medication.', cta: { href: '#', label: 'Get started' } }}
+	/>
+	<HowItWorks
+		eyebrow="How Noom Med works"
+		title="Making weight loss simple and clear"
+		image={howItWorksImage}
+		imageAlt="Smiling woman in a green sports top resting a hand on her head outdoors"
+		steps={[
+			{
+				title: 'Take a brief intake survey',
+				description: 'Share your health history and weight-loss goals and receive your clinical plan',
+			},
+			{
+				title: 'Connect with an expert clinician',
+				description: 'Meet a licensed clinician online who confirms whether medication is right for you',
+			},
+			{
+				title: 'Begin your treatment plan',
+				description: 'Get your medication delivered, plus daily lessons and coaching built around your goals',
+			},
+			{
+				title: 'Ongoing care and medication',
+				description: 'Check in with your care team, adjust your dose, and get refills on schedule',
+			},
+		]}
+	/>
+	<Science
+		title="The science and research behind our treatment"
+		description="Noom yields the best weight-loss results by combining our proven, psychology-based approach with prescription weight-loss medications."
+	>
+		<StatCard caption="Lose up to 20% of your body weight with weight-loss medications" captionClass="max-w-69.25">
+			<DonutChart value="-20%" label="Body weight" />
+		</StatCard>
+		<StatCard caption="Lose 48% more weight with Noom Med plus GLP-1s." captionClass="max-w-63">
+			<CurveChart topLabel="Medication only" bottomLabel="Noom + medication" />
+		</StatCard>
+		<StatCard caption="97% of doctors recommend combining GLP-1s with lifestyle changes." captionClass="max-w-84.75">
+			<BarChart value="97%" />
+		</StatCard>
+	</Science>
+	<Testimonial
+		background={testimonialBg}
+		testimonial={{
+			quote: '“Noom came through for me. I started medication and my care plan immediately after signing up. I feel healthy, empowered, and motivated to take care of myself.”',
+			author: 'Scott Tolinski',
+			image: scottImage,
+			imageAlt: 'Portrait of Scott smiling in a white sweatshirt',
+			stat: { value: '70lbs', label: 'lighter and thriving', countFrom: 10 },
+		}}
+	/>
+
+	<Articles
+		title="Read more about GLP-1s"
+		description="A closer look at the science behind today’s most effective weight-loss medications"
+		moreLink={{ href: '#', label: 'See more articles' }}
+		articles={[
+			{
+				title: 'Ozempic® and Wegovy®: Understanding the risks and symptoms of pancreatitis',
+				href: '#',
+				date: '2025-08-21',
+				image: pancreatitisImage,
+				imageAlt: 'Patient talking with a clinician in an exam room',
+			},
+			{
+				title: 'Tirzepatide vs. semaglutide: Understanding and comparing side effects',
+				href: '#',
+				date: '2025-08-14',
+				image: sideEffectsImage,
+				imageAlt: 'Close-up of a sensor patch on an upper arm',
+			},
+			{
+				title: 'Qsymia® side effects: What to expect & how to manage them',
+				href: '#',
+				date: '2025-08-12',
+				image: qsymiaImage,
+				imageAlt: 'Woman working on a laptop at home',
+			},
+		]}
+	/>
+
+	<Cta
+		title="Start your journey today"
+		description="Take the first step toward a healthier, happier you with Noom Med."
+		cta={{ href: '#', label: 'See if you’re eligible' }}
+		image={ctaImage}
+		imageAlt="Four smiling women embracing outdoors under a blue sky"
+	/>
+
+	<Faq
+		title="Frequently asked questions"
+		items={[
+			{
+				question: 'What’s included in Noom Med?',
+				open: true,
+				answer: [
+					'Noom Med combines weight-loss medication solutions with Noom’s psychological support to make long-term, transformational weight loss possible.',
+					'Noom Med comes with access to 1:1 messaging with expert weight-loss clinicians, prescriptions and medication (where clinically appropriate), a community of patients, ongoing medication management, and psychology-backed content and tools to make lasting behavior change.',
+				],
+			},
+			// TODO: the answers below are placeholder copy drawn from this page — replace with approved answers
+			{
+				question: 'Does Noom prescribe GLP-1s?',
+				answer: ['Yes. If a Noom clinician determines it’s clinically appropriate, they can prescribe GLP-1 medications as part of your treatment plan.'],
+			},
+			{
+				question: 'How much do GLP-1s cost with Noom?',
+				answer: ['Cost depends on your medication and whether you use insurance or pay cash. Your care team will review your options with you.'],
+			},
+			{
+				question: 'Do I need insurance to get weight-loss medications from Noom?',
+				answer: ['Noom Med works with insurance or cash pay. Availability of some medications and home delivery depends on your coverage.'],
+			},
+			{
+				question: 'How is Noom’s approach different?',
+				answer: ['Noom pairs medication with psychology-based coaching, a supportive community, and tools for lasting behavior change — not medication alone.'],
+			},
+			{
+				question: 'What types of oral medications does Noom offer?',
+				answer: ['Oral options such as metformin may be prescribed when clinically appropriate. Metformin is not FDA-approved for weight loss.'],
+			},
+			{
+				question: 'How much do oral medications cost with Noom?',
+				answer: ['Pricing varies by medication and by insurance or cash pay status.'],
+			},
+		]}
+		footnotes={[
+			'* Not all medications are available for home delivery. Availability of home delivery will depend on your insurance or cash pay status. If your clinician feels compounded medications are clinically appropriate for you, any compounded medications are not approved by the FDA or reviewed for quality, safety or efficacy. Novo Nordisk, Inc. is the only United States company with FDA-approved products containing semaglutide, identified under the trade names Rybelsus®, Ozempic® and Wegovy®. Lilly USA LLC is the only United States company with FDA-approved products containing tirzepatide identified under the trade names Zepbound® and Mounjaro®',
+			'1 Based on an independent third party survey of 251 primary care physicians who currently prescribe GLP-1 medications',
+			'† Based on retrospective study of self-reported data of active versus passive users who were offered the Noom program when being prescribed an early GLP-1.',
+			'‡ Following clinical trial information is for branded medications only: In a 68- and 72-week clinical trial studying Wegovy (2.4 mg) and Zepbound (15 mg) in patients without diabetes and with BMI >= 30, or BMI >= 27 with a weight-related condition, the average weight loss was 15% and 20%, when paired with diet and exercise changes (compared to 2.4% and 3.1%, respectively, with diet and exercise alone). The FDA does not review any compounded medication for safety or efficacy.',
+			'2 Every FSA/HSA plan is unique, and Noom does not provide medical, healthcare benefit, or tax advice to individuals. Noom cannot guarantee that any Noom services will qualify for every FSA/HSA plan. For additional information about FSA/HSA, look here or consult your tax advisor.\nMetformin is not FDA-approved for weight loss.',
+		]}
+	/>
+</BaseLayout>
