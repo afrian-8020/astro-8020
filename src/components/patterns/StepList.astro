@@ -1,0 +1,113 @@
+---
+import StepItem from './StepItem.astro';
+
+interface Props {
+	steps: { title: string; description?: string }[];
+	/** Zero-based index of the step open on load */
+	activeIndex?: number;
+	/** Seconds each step stays open before auto-advancing (0 disables autoplay) */
+	interval?: number;
+	class?: string;
+}
+
+const { steps, activeIndex = 0, interval = 5, class: className } = Astro.props;
+const uid = `steps-${crypto.randomUUID().slice(0, 8)}`;
+---
+
+<!--
+	Single-open accordion that auto-advances: the open step's top line fills as a progress bar, then the
+	next step opens (looping). Clicking a step opens it and restarts the timer. Runs only while in view.
+-->
+<ol class:list={['flex flex-col gap-4', className]} data-steps data-interval={interval}>
+	{steps.map((step, i) => <StepItem id={`${uid}-${i}`} number={i + 1} {...step} active={i === activeIndex} />)}
+</ol>
+
+<script>
+	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const EXPAND = { duration: 0.5, ease: 'power2.inOut' };
+
+	document.querySelectorAll<HTMLElement>('[data-steps]').forEach((list) => {
+		const items = [...list.querySelectorAll<HTMLElement>('[data-step]')];
+		const interval = reduceMotion ? 0 : Number(list.dataset.interval) || 0;
+		let current = Math.max(0, items.findIndex((item) => item.hasAttribute('data-active')));
+		let timer: gsap.core.Tween | null = null;
+		let inView = false;
+
+		const part = (item: HTMLElement) => ({
+			trigger: item.querySelector<HTMLElement>('[data-step-trigger]')!,
+			panel: item.querySelector<HTMLElement>('[data-step-panel]'),
+			progress: item.querySelector<HTMLElement>('[data-step-progress]')!,
+		});
+
+		const open = (panel: HTMLElement | null) => {
+			if (!panel) return;
+			panel.hidden = false;
+			gsap.fromTo(panel, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, ...EXPAND, duration: reduceMotion ? 0 : EXPAND.duration, overwrite: true });
+		};
+
+		const close = (panel: HTMLElement | null) => {
+			if (!panel || panel.hidden) return;
+			gsap.to(panel, {
+				height: 0,
+				opacity: 0,
+				...EXPAND,
+				duration: reduceMotion ? 0 : EXPAND.duration,
+				overwrite: true,
+				onComplete: () => (panel.hidden = true),
+			});
+		};
+
+		// Fill the open step's line over `interval` seconds, then advance
+		const startTimer = () => {
+			timer?.kill();
+			const { progress } = part(items[current]);
+			if (!interval) {
+				gsap.set(progress, { scaleX: 1 });
+				return;
+			}
+			timer = gsap.fromTo(
+				progress,
+				{ scaleX: 0 },
+				{ scaleX: 1, duration: interval, ease: 'none', paused: !inView, onComplete: () => activate((current + 1) % items.length) },
+			);
+		};
+
+		const activate = (index: number) => {
+			if (index !== current) {
+				const prev = part(items[current]);
+				const next = part(items[index]);
+				items[current].removeAttribute('data-active');
+				prev.trigger.setAttribute('aria-expanded', 'false');
+				gsap.to(prev.progress, { scaleX: 0, duration: 0.3, ease: 'power2.out', overwrite: true });
+				close(prev.panel);
+
+				items[index].setAttribute('data-active', '');
+				next.trigger.setAttribute('aria-expanded', 'true');
+				open(next.panel);
+				current = index;
+			}
+			startTimer();
+		};
+
+		items.forEach((item, i) => part(item).trigger.addEventListener('click', () => activate(i)));
+
+		// Only count down while the list is on screen, so visitors arrive at step 1
+		ScrollTrigger.create({
+			trigger: list,
+			start: 'top bottom',
+			end: 'bottom top',
+			onToggle: (self) => {
+				inView = self.isActive;
+				if (inView) timer?.resume();
+				else timer?.pause();
+			},
+		});
+
+		startTimer();
+	});
+</script>

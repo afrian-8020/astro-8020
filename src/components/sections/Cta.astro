@@ -1,0 +1,33 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Container from '../ui/Container.astro';
+import Button from '../ui/Button.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+	cta: { href: string; label: string };
+	image: ImageMetadata;
+	imageAlt: string;
+}
+
+const { title, description, cta, image, imageAlt } = Astro.props;
+---
+
+<!-- Full-bleed closing CTA: copy sits in the sky area, subjects anchored to the bottom edge -->
+<section class="theme-dark relative isolate flex min-h-150 overflow-hidden bg-surface pt-20 text-ink lg:min-h-185 lg:pt-30">
+	<Image
+		src={image}
+		alt={imageAlt}
+		widths={[768, 1456]}
+		sizes="100vw"
+		class="absolute inset-0 -z-10 size-full object-cover object-bottom"
+	/>
+
+	<Container class="flex flex-col items-center gap-8 text-center">
+		<h2 class="text-h3 md:text-h2 lg:text-h1" data-reveal>{title}</h2>
+		{description && <p class="max-w-155 text-body" data-reveal>{description}</p>}
+		<Button href={cta.href} reveal>{cta.label}</Button>
+	</Container>
+</section>

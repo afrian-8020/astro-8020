@@ -1,0 +1,81 @@
+---
+import ChevronDown from '../../assets/icons/chevron-down-lg.svg';
+
+interface Props {
+	question: string;
+	/** One string per paragraph */
+	answer: string[];
+	open?: boolean;
+	/** Items sharing a group name behave as an exclusive accordion (native <details name>; animated when JS runs) */
+	group?: string;
+}
+
+const { question, answer, open = false, group } = Astro.props;
+---
+
+<details
+	class="group border-t border-surface-inverse/10 text-ink transition-colors duration-500 data-expanded:border-surface-inverse [&::-webkit-details-marker]:hidden"
+	name={group}
+	open={open}
+	data-faq
+	data-faq-group={group}
+	data-expanded={open ? '' : undefined}
+>
+	<summary
+		class="flex cursor-pointer list-none items-center justify-between gap-10 pt-4 text-body focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current [&::-webkit-details-marker]:hidden"
+	>
+		<span>{question}</span>
+		<ChevronDown class:list={['size-6 shrink-0', open && 'rotate-180']} aria-hidden="true" data-faq-chevron />
+	</summary>
+	<div class="overflow-hidden" data-faq-panel>
+		<div class="flex flex-col gap-6 pt-6 pb-4 text-body text-balance">
+			{answer.map((paragraph) => <p>{paragraph}</p>)}
+		</div>
+	</div>
+</details>
+
+<script>
+	import { gsap } from 'gsap';
+
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const EXPAND = { duration: reduceMotion ? 0 : 0.5, ease: 'power2.inOut' };
+
+	const items = [...document.querySelectorAll<HTMLDetailsElement>('[data-faq]')];
+
+	const parts = (item: HTMLDetailsElement) => ({
+		panel: item.querySelector<HTMLElement>('[data-faq-panel]')!,
+		chevron: item.querySelector<SVGElement>('[data-faq-chevron]')!,
+	});
+
+	const expand = (item: HTMLDetailsElement) => {
+		const { panel, chevron } = parts(item);
+		item.open = true;
+		item.setAttribute('data-expanded', '');
+		gsap.fromTo(panel, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, ...EXPAND, overwrite: true });
+		gsap.to(chevron, { rotation: 180, ...EXPAND, overwrite: true });
+	};
+
+	const collapse = (item: HTMLDetailsElement) => {
+		const { panel, chevron } = parts(item);
+		item.removeAttribute('data-expanded');
+		gsap.to(panel, { height: 0, opacity: 0, ...EXPAND, overwrite: true, onComplete: () => (item.open = false) });
+		gsap.to(chevron, { rotation: 0, ...EXPAND, overwrite: true });
+	};
+
+	items.forEach((item) => {
+		// The script enforces "one open per group" itself; the native `name` behaviour would close items instantly
+		item.removeAttribute('name');
+		// Hand the chevron's resting rotation over to GSAP
+		gsap.set(parts(item).chevron, { rotation: item.open ? 180 : 0 });
+		parts(item).chevron.classList.remove('rotate-180');
+
+		item.querySelector('summary')!.addEventListener('click', (event) => {
+			event.preventDefault();
+			if (item.hasAttribute('data-expanded')) return collapse(item);
+
+			const group = item.dataset.faqGroup;
+			if (group) items.filter((other) => other !== item && other.dataset.faqGroup === group && other.hasAttribute('data-expanded')).forEach(collapse);
+			expand(item);
+		});
+	});
+</script>

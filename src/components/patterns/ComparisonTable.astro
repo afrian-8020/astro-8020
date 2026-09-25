@@ -1,0 +1,41 @@
+---
+import BrandLockup from '../ui/BrandLockup.astro';
+import ComparisonRow from './ComparisonRow.astro';
+
+interface Column {
+	label: string;
+	/** Render the brand logo instead of text (label becomes the accessible name) */
+	brand?: { sublabel?: string };
+}
+
+interface Props {
+	/** Accessible caption describing the comparison */
+	caption: string;
+	/** Header for the feature column — visually hidden */
+	featureLabel?: string;
+	columns: Column[];
+	rows: { label: string; values: boolean[] }[];
+	class?: string;
+}
+
+const { caption, featureLabel = 'Feature', columns, rows, class: className } = Astro.props;
+---
+
+<table class:list={['relative w-full table-fixed border-collapse text-ink', className]}>
+	<caption class="sr-only">{caption}</caption>
+	<thead>
+		<tr>
+			<th scope="col" class="pb-4"><span class="sr-only">{featureLabel}</span></th>
+			{
+				columns.map((column) => (
+					<th scope="col" class="w-20 pb-4 text-center align-middle text-body-sm font-normal md:w-40 md:text-body lg:w-70.75">
+						{column.brand ? <BrandLockup label={column.label} sublabel={column.brand.sublabel} /> : column.label}
+					</th>
+				))
+			}
+		</tr>
+	</thead>
+	<tbody>
+		{rows.map((row) => <ComparisonRow {...row} />)}
+	</tbody>
+</table>

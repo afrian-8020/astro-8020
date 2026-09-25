@@ -1,0 +1,30 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'button'> {
+	/** Accessible name — the button has no visible text */
+	label: string;
+	/** white: solid white fill (on muted backgrounds) · subtle: translucent tint (on white cards) */
+	variant?: 'white' | 'subtle';
+}
+
+const { label, variant = 'white', class: className, ...attrs } = Astro.props;
+
+const variants = {
+	white: 'bg-surface-white',
+	subtle: 'bg-surface-subtle',
+};
+---
+
+<button
+	type="button"
+	aria-label={label}
+	class:list={[
+		'inline-flex size-10 cursor-pointer items-center justify-center rounded-full text-ink transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current disabled:cursor-default disabled:opacity-40',
+		variants[variant],
+		className,
+	]}
+	{...attrs}
+>
+	<slot />
+</button>

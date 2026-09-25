@@ -1,0 +1,93 @@
+---
+import Logo from '../../assets/logo.svg';
+import Facebook from '../../assets/icons/facebook.svg';
+import Instagram from '../../assets/icons/instagram.svg';
+import X from '../../assets/icons/x.svg';
+import LinkedIn from '../../assets/icons/linkedin.svg';
+import Container from '../ui/Container.astro';
+import FooterColumn from '../patterns/FooterColumn.astro';
+
+type Link = { href: string; label: string };
+
+interface Props {
+	columns?: { title: string; links: Link[] }[];
+	legalLinks?: Link[];
+	copyright?: string;
+}
+
+const links = (...labels: string[]): Link[] => labels.map((label) => ({ href: '#', label }));
+
+const {
+	columns = [
+		{ title: 'For individuals', links: links('Noom Med', 'Lose weight', 'Relieve stress', 'Calorie calculator', 'Macro calculator') },
+		{ title: 'For organizations', links: links('Employers', 'Health plans', 'Health systems', 'Resources') },
+		{ title: 'Company', links: links('About us', 'Careers', 'Research', 'Press', 'Blog') },
+		{ title: 'Resources', links: links('Support', 'GLP-1 Access & Transparency', 'HRT safety', 'Brand ambassadors') },
+		{ title: 'Languages', links: links('English', 'German', 'Spanish', 'Korean') },
+	],
+	legalLinks = links(
+		'Legal',
+		'Cookie policy',
+		'Terms and conditions',
+		'Candidate privacy policy',
+		'Privacy policy',
+		'HIPAA notice',
+		'Accessibility',
+		'Consumer health data privacy notice',
+		'Your privacy choices',
+	),
+	copyright = `Copyright © ${new Date().getFullYear()} Noom, Inc. All Rights Reserved.`,
+} = Astro.props;
+
+const socials = [
+	{ href: '#', label: 'Facebook', icon: Facebook },
+	{ href: '#', label: 'Instagram', icon: Instagram },
+	{ href: '#', label: 'X', icon: X },
+	{ href: '#', label: 'LinkedIn', icon: LinkedIn },
+];
+---
+
+<footer class="theme-dark bg-surface py-20 text-ink">
+	<Container class="flex flex-col gap-14 lg:flex-row lg:justify-between">
+		<a href="/" aria-label="Home" class="shrink-0 self-start">
+			<Logo class="h-5 w-auto" aria-hidden="true" />
+		</a>
+
+		<div class="flex flex-col gap-20 lg:w-229.5 lg:gap-30">
+			<nav aria-label="Footer" class="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
+				{columns.map((column) => <FooterColumn {...column} />)}
+			</nav>
+
+			<div class="flex flex-col gap-10">
+				<ul class="flex max-w-169.75 flex-wrap gap-4 text-body-xs opacity-60">
+					{
+						legalLinks.map((link) => (
+							<li>
+								<a href={link.href} class="hover:underline">
+									{link.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+
+				<hr class="border-border-strong/10" />
+
+				<div class="flex flex-col gap-6">
+					<ul class="flex items-center gap-6">
+						{
+							socials.map(({ href, label, icon: Icon }) => (
+								<li>
+									<a href={href} aria-label={label} class="block opacity-60 transition-opacity hover:opacity-100">
+										<Icon class="size-5" aria-hidden="true" />
+									</a>
+								</li>
+							))
+						}
+					</ul>
+					<p class="text-body-xs text-ink-muted">{copyright}</p>
+				</div>
+			</div>
+		</div>
+	</Container>
+</footer>

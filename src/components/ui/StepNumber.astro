@@ -1,0 +1,16 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'span'> {
+	value: number | string;
+}
+
+const { value, class: className, ...attrs } = Astro.props;
+---
+
+<span
+	class:list={['inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-inverse text-body text-ink-inverse', className]}
+	{...attrs}
+>
+	{value}
+</span>

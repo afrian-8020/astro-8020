@@ -1,0 +1,16 @@
+---
+import Button from '../ui/Button.astro';
+
+interface Props {
+	text: string;
+	cta: { href: string; label: string };
+	class?: string;
+}
+
+const { text, cta, class: className } = Astro.props;
+---
+
+<div class:list={['flex flex-wrap items-center justify-center gap-4 text-center text-ink', className]}>
+	<p class="text-body" data-reveal>{text}</p>
+	<Button href={cta.href} reveal>{cta.label}</Button>
+</div>

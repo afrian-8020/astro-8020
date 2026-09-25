@@ -1,0 +1,47 @@
+---
+interface Props {
+	href?: string;
+	/** primary: filled coral · secondary: filled teal · tertiary: outlined */
+	variant?: 'primary' | 'secondary' | 'tertiary';
+	size?: 'sm' | 'md';
+	type?: 'button' | 'submit' | 'reset';
+	/** Fade in as part of its section's text reveal sequence (see src/scripts/reveal.ts) */
+	reveal?: boolean;
+	class?: string;
+}
+
+const { href, variant = 'primary', size = 'md', type = 'button', reveal = false, class: className } = Astro.props;
+const revealAttr = reveal ? 'block' : undefined;
+
+// Every variant carries a 1px border (transparent when filled) so all variants share the same size
+const variants = {
+	primary: 'border-transparent bg-button-primary-bg text-button-primary-text hover:bg-coral-600',
+	secondary: 'border-transparent bg-button-secondary-bg text-button-secondary-text hover:bg-teal-700',
+	tertiary: 'border-button-tertiary-text text-button-tertiary-text hover:bg-surface-subtle',
+};
+
+// Padding + 1px border = Figma padding (sm: 12/5, md: 16/8)
+const sizes = {
+	sm: 'px-2.75 py-1 text-body-sm',
+	md: 'px-3.75 py-1.75 text-body',
+};
+
+const classes = [
+	'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-4xl border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current',
+	variants[variant],
+	sizes[size],
+	className,
+];
+---
+
+{
+	href ? (
+		<a href={href} class:list={classes} data-reveal={revealAttr}>
+			<slot />
+		</a>
+	) : (
+		<button type={type} class:list={classes} data-reveal={revealAttr}>
+			<slot />
+		</button>
+	)
+}

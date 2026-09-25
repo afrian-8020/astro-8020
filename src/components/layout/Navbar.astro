@@ -1,0 +1,122 @@
+---
+import Logo from '../../assets/logo.svg';
+import MenuIcon from '../../assets/icons/menu.svg';
+import Container from '../ui/Container.astro';
+import NavLink from '../ui/NavLink.astro';
+import Button from '../ui/Button.astro';
+
+interface Link {
+	href: string;
+	label: string;
+	hasMenu?: boolean;
+}
+
+interface Props {
+	links?: Link[];
+	cta?: { href: string; label: string };
+	/**
+	 * Fixed and transparent over the first section of the page (dark theme), then switches to a solid
+	 * white bar with dark content once that section scrolls out from under it. Without it the bar is
+	 * simply sticky and solid.
+	 */
+	overlay?: boolean;
+	class?: string;
+}
+
+const {
+	links = [
+		{ href: '#', label: 'For individuals', hasMenu: true },
+		{ href: '#', label: 'For organizations', hasMenu: true },
+		{ href: '#', label: 'Company', hasMenu: true },
+	],
+	cta = { href: '#', label: 'Get started' },
+	overlay = false,
+	class: className,
+} = Astro.props;
+---
+
+<header
+	class:list={[
+		'top-0 z-50 text-ink transition-colors duration-300 ease-in-out data-solid:bg-surface-white',
+		overlay ? 'theme-dark fixed inset-x-0' : 'sticky',
+		className,
+	]}
+	data-navbar
+	data-overlay={overlay ? '' : undefined}
+	data-solid={overlay ? undefined : ''}
+>
+	<Container class="flex items-center justify-between gap-6 py-3">
+		<a href="/" aria-label="Home" class="shrink-0">
+			<Logo class="h-5 w-auto" aria-hidden="true" />
+		</a>
+
+		<nav aria-label="Main" class="flex items-center gap-6">
+			<ul class="hidden items-center gap-6 md:flex">
+				{
+					links.map((link) => (
+						<li>
+							<NavLink href={link.href} hasMenu={link.hasMenu}>
+								{link.label}
+							</NavLink>
+						</li>
+					))
+				}
+			</ul>
+			<Button href={cta.href} variant="tertiary" size="sm" class="duration-300">{cta.label}</Button>
+			<button
+				type="button"
+				class="-mr-1 p-1 md:hidden"
+				aria-label="Open menu"
+				aria-expanded="false"
+				aria-controls="navbar-mobile-menu"
+				data-navbar-toggle
+			>
+				<MenuIcon class="size-6" aria-hidden="true" />
+			</button>
+		</nav>
+	</Container>
+
+	<div id="navbar-mobile-menu" class="hidden border-t border-border-subtle bg-surface transition-colors duration-300 md:hidden" data-navbar-menu>
+		<Container as="nav" class="py-4">
+			<ul class="flex flex-col gap-4">
+				{
+					links.map((link) => (
+						<li>
+							<NavLink href={link.href} class="text-body">
+								{link.label}
+							</NavLink>
+						</li>
+					))
+				}
+			</ul>
+		</Container>
+	</div>
+</header>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-navbar]').forEach((navbar) => {
+		// Overlay mode: go solid once the first section (the hero) has scrolled out from under the bar
+		const hero = document.querySelector('main > :first-child');
+		if (navbar.hasAttribute('data-overlay') && hero) {
+			const setSolid = (solid: boolean) => {
+				navbar.toggleAttribute('data-solid', solid);
+				navbar.classList.toggle('theme-dark', !solid);
+			};
+			new IntersectionObserver(([entry]) => setSolid(!entry.isIntersecting), {
+				// Shrink the viewport's top edge by the bar's height so the switch happens as the hero's bottom passes under it
+				rootMargin: `-${navbar.offsetHeight}px 0px 0px 0px`,
+			}).observe(hero);
+		}
+
+		const toggle = navbar.querySelector<HTMLButtonElement>('[data-navbar-toggle]');
+		const menu = navbar.querySelector<HTMLElement>('[data-navbar-menu]');
+		if (!toggle || !menu) return;
+
+		toggle.addEventListener('click', () => {
+			const open = toggle.getAttribute('aria-expanded') !== 'true';
+			toggle.setAttribute('aria-expanded', String(open));
+			toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+			menu.classList.toggle('hidden', !open);
+		});
+	});
+</script>
