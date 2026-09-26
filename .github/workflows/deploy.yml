@@ -1,4 +1,5 @@
-# Builds the Astro site and publishes it to GitHub Pages on every push to main.
+# Builds the Astro site and publishes it to GitHub Pages on every push to main, and whenever content is
+# published in Sanity (a Sanity webhook sends a `sanity-content` repository_dispatch event — see README).
 # https://docs.astro.build/en/guides/deploy/github/
 name: Deploy to GitHub Pages
 
@@ -6,6 +7,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  repository_dispatch:
+    types: [sanity-content]
 
 permissions:
   contents: read
@@ -15,6 +18,11 @@ permissions:
 concurrency:
   group: pages
   cancel-in-progress: false
+
+# Public project settings (content is read at build time; no token needed for a public dataset)
+env:
+  PUBLIC_SANITY_PROJECT_ID: hnwfsxph
+  PUBLIC_SANITY_DATASET: production
 
 jobs:
   build:

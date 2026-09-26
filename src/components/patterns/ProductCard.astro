@@ -1,6 +1,6 @@
 ---
-import { Image } from 'astro:assets';
-import type { ImageMetadata } from 'astro';
+import SanityImage from '../ui/SanityImage.astro';
+import type { SanityImageSource } from '../../sanity/image';
 import Registered from '../../assets/icons/registered.svg';
 import Badge from '../ui/Badge.astro';
 import Button from '../ui/Button.astro';
@@ -13,8 +13,8 @@ interface Link {
 
 interface Props {
 	name: string;
-	image: ImageMetadata;
-	imageAlt: string;
+	/** Includes its alt text and hotspot */
+	image: SanityImageSource;
 	badges?: { label: string; variant?: 'neutral' | 'success' }[];
 	/** Shows the ® mark after the name */
 	registered?: boolean;
@@ -24,7 +24,7 @@ interface Props {
 	class?: string;
 }
 
-const { name, image, imageAlt, badges = [], registered = false, disclosure, primaryCta, secondaryCta, class: className } = Astro.props;
+const { name, image, badges = [], registered = false, disclosure, primaryCta, secondaryCta, class: className } = Astro.props;
 ---
 
 <article class:list={['relative flex flex-col-reverse overflow-hidden bg-surface-white text-ink sm:flex-row', className]} data-product-card>
@@ -82,9 +82,8 @@ const { name, image, imageAlt, badges = [], registered = false, disclosure, prim
 	<div class="relative h-56 shrink-0 overflow-hidden sm:h-76.5 sm:w-76">
 		{/* Image framing from Figma: oversized, anchored low and slightly right so it bleeds off the card */}
 		<div class="absolute top-[8.5%] bottom-[-25.16%] left-[54.3%] aspect-[1200/1040] -translate-x-1/2">
-			<Image
-				src={image}
-				alt={imageAlt}
+			<SanityImage
+				image={image}
 				widths={[420, 840, 1200]}
 				sizes="420px"
 				quality={90}

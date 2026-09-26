@@ -1,0 +1,43 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import { focalPoint, imageUrl, type SanityImageSource } from '../../sanity/image';
+
+interface Props extends Omit<HTMLAttributes<'img'>, 'src' | 'srcset' | 'width' | 'height'> {
+	image: SanityImageSource;
+	/** Candidate widths for the srcset (px); capped at the original's width */
+	widths: number[];
+	/** How wide the image renders, as the `sizes` attribute */
+	sizes: string;
+	quality?: number;
+	/** Overrides the image's own alt text (e.g. "" for a decorative use) */
+	alt?: string;
+}
+
+const { image, widths, sizes, quality = 90, alt, style, loading = 'lazy', decoding = 'async', ...attrs } = Astro.props;
+if (!image.asset) throw new Error('SanityImage: image has no asset');
+// Dimensions come from the asset's metadata; the fallbacks only guard against assets still processing
+const width = image.asset.width ?? Math.max(...widths);
+const height = image.asset.height ?? width;
+
+// Never request more pixels than the original has
+const candidates = [...new Set(widths.filter((w) => w < width).concat(Math.min(Math.max(...widths), width)))];
+const srcset = candidates.map((w) => `${imageUrl(image, w, quality)} ${w}w`).join(', ');
+const largest = candidates.at(-1)!;
+
+// The hotspot sets object-position unless the component already positions the image itself
+const position = focalPoint(image);
+const styles = [position && `object-position: ${position}`, style].filter(Boolean).join('; ');
+---
+
+<img
+	src={imageUrl(image, largest, quality)}
+	srcset={srcset}
+	sizes={sizes}
+	width={width}
+	height={height}
+	alt={alt ?? image.alt ?? ''}
+	loading={loading}
+	decoding={decoding}
+	style={styles || undefined}
+	{...attrs}
+/>

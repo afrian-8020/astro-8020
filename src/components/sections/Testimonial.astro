@@ -1,12 +1,12 @@
 ---
-import { Image } from 'astro:assets';
-import type { ImageMetadata } from 'astro';
+import SanityImage from '../ui/SanityImage.astro';
+import type { SanityImageSource } from '../../sanity/image';
 import type { ComponentProps } from 'astro/types';
 import Container from '../ui/Container.astro';
 import TestimonialCard from '../patterns/TestimonialCard.astro';
 
 interface Props {
-	background: ImageMetadata;
+	background: SanityImageSource;
 	testimonial: Omit<ComponentProps<typeof TestimonialCard>, 'class'>;
 }
 
@@ -22,8 +22,8 @@ const { background, testimonial } = Astro.props;
 		The mirror + 1.25 zoom (anchored bottom) lives on the image itself — a transform on the wrapper would break `fixed`.
 	*/}
 	<div class="absolute inset-0 -z-10 [clip-path:inset(0)]" aria-hidden="true">
-		<Image
-			src={background}
+		<SanityImage
+			image={background}
 			alt=""
 			widths={[768, 1024, 1456]}
 			sizes="125vw"

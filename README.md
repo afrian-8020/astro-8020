@@ -1,46 +1,29 @@
-# Astro Starter Kit: Basics
+# Noom Med landing page
+
+Astro + Tailwind site, deployed to GitHub Pages: https://afrian-8020.github.io/astro-8020/
 
 ```sh
-npm create astro@latest -- --template basics
+cp .env.example .env   # Sanity project id + dataset
+npm install
+npm run dev            # http://localhost:4321
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Content (Sanity)
 
-## 🚀 Project Structure
+All page copy and photos come from Sanity project `hnwfsxph` (dataset `production`), edited in the standalone
+Studio at `../studio-afrian---astro-8020` (`npm run dev` there → http://localhost:3333).
 
-Inside of your Astro project, you'll see the following folders and files:
+- `src/sanity/queries.ts` — the GROQ query for the page (`HOME_PAGE_QUERY`)
+- `src/sanity/sanity.types.ts` — generated types; after changing the schema or a query, run `npm run typegen` in the Studio
+- `src/components/ui/SanityImage.astro` — responsive images from the Sanity CDN; the editor's hotspot sets the crop
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
+Content is fetched at build time, so the site updates when it's rebuilt. To rebuild automatically on publish, add a
+Sanity webhook (sanity.io/manage → API → Webhooks):
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+- **URL:** `https://api.github.com/repos/afrian-8020/astro-8020/dispatches` · **Method:** POST
+- **Trigger on:** create, update, delete · **Filter:** `_type in ["homePage", "product", "article", "testimonial"]`
+- **Drafts:** off · **Projection:** `{"event_type": "sanity-content"}`
+- **HTTP headers:** `Authorization: Bearer <GitHub fine-grained token with Contents: read & write on this repo>`,
+  `Accept: application/vnd.github+json`
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+You can also rebuild by hand from the repo's Actions tab ("Deploy to GitHub Pages" → Run workflow).

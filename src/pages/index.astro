@@ -14,248 +14,140 @@ import Testimonial from '../components/sections/Testimonial.astro';
 import Articles from '../components/sections/Articles.astro';
 import Cta from '../components/sections/Cta.astro';
 import Faq from '../components/sections/Faq.astro';
-import testimonialBg from '../assets/testimonial-bg.png';
-import scottImage from '../assets/testimonials/scott.png';
-import pancreatitisImage from '../assets/articles/pancreatitis.png';
-import sideEffectsImage from '../assets/articles/side-effects.png';
-import qsymiaImage from '../assets/articles/qsymia.png';
-import ctaImage from '../assets/cta.png';
-import heroImage from '../assets/hero.png';
-import wegovyImage from '../assets/products/wegovy.png';
-import zepboundImage from '../assets/products/zepbound.png';
-import metforminImage from '../assets/products/metformin.png';
-import howItWorksImage from '../assets/how-it-works.png';
-import stepTwoImage from '../assets/how-it-works/step-2.webp';
-import stepThreeImage from '../assets/how-it-works/step-3.jpg';
-import stepFourImage from '../assets/how-it-works/step-4.jpg';
+import { sanityClient } from '../sanity/client';
+import { HOME_PAGE_QUERY } from '../sanity/queries';
 
-const productCtas = {
-	disclosure: { href: '#', label: 'See safety disclosures' },
-	primaryCta: { href: '#', label: 'Get started' },
-	secondaryCta: { href: '#', label: 'Learn more' },
-};
+// All page content comes from the Home Page document in Sanity (Studio: ../studio-afrian---astro-8020)
+const page = await sanityClient.fetch(HOME_PAGE_QUERY);
 
-// The carousel shows the three products twice (1, 2, 3, 1, 2, 3)
-const products = [
-	{
-		name: 'Wegovy',
-		registered: true,
-		badges: [{ label: 'Semaglutide' }],
-		image: wegovyImage,
-		imageAlt: 'Wegovy injection pen',
-		...productCtas,
-	},
-	{
-		name: 'Zepbound',
-		registered: true,
-		badges: [{ label: 'Tirzepatide' }],
-		image: zepboundImage,
-		imageAlt: 'Zepbound vial and injection pen',
-		...productCtas,
-	},
-	{
-		name: 'Metformin',
-		registered: true,
-		badges: [{ label: 'Oral' }, { label: 'FSA & HSA eligible', variant: 'success' }],
-		image: metforminImage,
-		imageAlt: 'Metformin prescription bottle',
-		...productCtas,
-	},
-];
+/** Fail the build loudly, naming the field, rather than rendering a half-empty page */
+function need<T>(value: T | null | undefined, field: string): T {
+	if (value === null || value === undefined) throw new Error(`Sanity: Home Page is missing "${field}"`);
+	return value;
+}
+const link = (value: { label: string | null; href: string | null } | null | undefined) =>
+	value?.label && value.href ? { label: value.label, href: value.href } : undefined;
+
+const home = need(page, 'the published homePage document');
+const hero = need(home.hero, 'hero');
+const showcase = need(home.productShowcase, 'productShowcase');
+const comparison = need(home.comparison, 'comparison');
+const howItWorks = need(home.howItWorks, 'howItWorks');
+const science = need(home.science, 'science');
+const testimonial = need(home.testimonialSection?.testimonial, 'testimonialSection.testimonial');
+const articles = need(home.articlesSection, 'articlesSection');
+const callToAction = need(home.callToAction, 'callToAction');
+const faq = need(home.faq, 'faq');
+
+// The carousel shows the products twice (1, 2, 3, 1, 2, 3)
+const products = (showcase.products ?? []).map((product) => ({
+	name: need(product.name, 'product name'),
+	registered: product.registered ?? false,
+	badges: (product.tags ?? []).map((tag) => ({
+		label: need(tag.label, 'product tag'),
+		variant: tag.kind === 'benefit' ? ('success' as const) : ('neutral' as const),
+	})),
+	image: need(product.image, `${product.name} image`),
+	disclosure: link(product.disclosure),
+	primaryCta: link(product.primaryCta),
+	secondaryCta: link(product.secondaryCta),
+}));
+
+// Caption widths that wrap like the design, per chart kind
+const statCaptionClass = { ring: 'max-w-69.25', curves: 'max-w-63', scale: 'max-w-84.75' } as const;
 ---
 
-<BaseLayout title="Home">
+<BaseLayout title={home.seo?.title ?? 'Noom Med'} description={home.seo?.description ?? undefined}>
 	<Navbar slot="header" overlay />
 
 	<Hero
-		badge="FSA & HSA eligible"
-		title="Weight-loss medication, powered by real change"
-		description="Noom Med makes weight loss easier with fast access to GLP-1s, proven lifestyle coaching, and results that go beyond medication alone."
-		cta={{ href: '#', label: 'See if you’re eligible' }}
-		image={heroImage}
-		imageAlt="Smiling woman stretching her arms overhead against a blue sky"
-		features={[
-			{
-				title: 'Fast access',
-				description: 'Get prescribed GLP-1s and have them shipped to your door in as little as seven days.',
-			},
-			{
-				title: 'Better results',
-				description: 'Lose nearly 50% more weight with Noom Med compared to medication alone.',
-			},
-			{
-				title: 'Doctor-backed',
-				description: '97% of physicians recommend pairing GLP-1s with lifestyle changes for lasting success.',
-			},
-		]}
+		badge={hero.badge ?? undefined}
+		title={need(hero.heading, 'hero.heading')}
+		description={need(hero.description, 'hero.description')}
+		cta={link(hero.cta)}
+		image={need(hero.image, 'hero.image')}
+		features={(hero.benefits ?? []).map((benefit) => ({
+			title: need(benefit.title, 'hero benefit title'),
+			description: need(benefit.description, 'hero benefit description'),
+		}))}
 	/>
 
 	<ProductShowcase
-		title="Discover the right weight-loss medication for you"
-		description="Our clinical team offers a wide array of medications to give the best treatment to those who qualify."
-		browseLink={{ href: '#', label: 'Browse our products' }}
+		title={need(showcase.heading, 'productShowcase.heading')}
+		description={showcase.description ?? undefined}
+		browseLink={link(showcase.browseLink)}
 		products={[...products, ...products]}
 	/>
 	<Comparison
-		title="Noom is more than medication"
-		description="Noom provides the right medication and tailored support so you can lose the weight, keep it off, and potentially one day live med free."
-		columns={[{ label: 'Noom Med', brand: { sublabel: 'MED' } }, { label: 'Medication only' }]}
-		rows={[
-			{ label: 'Weight-loss medication shipped to your door, if prescribed*', values: [true, false] },
-			{ label: '100% online access to licensed clinicians', values: [true, false] },
-			{ label: 'Keep the muscle with our Muscle Defense™ program', values: [true, false] },
-			{ label: 'Tools to support healthy habits and track your progress', values: [true, false] },
-			{ label: 'Supportive coaches and community', values: [true, false] },
-			{ label: 'Personalized dosing to minimize side effects', values: [true, false] },
-		]}
-		cta={{ text: 'Start your journey beyond medication.', cta: { href: '#', label: 'Get started' } }}
+		title={need(comparison.heading, 'comparison.heading')}
+		description={comparison.description ?? undefined}
+		columns={[{ label: 'Noom Med', brand: { sublabel: 'MED' } }, { label: need(comparison.alternativeLabel, 'comparison.alternativeLabel') }]}
+		rows={(comparison.features ?? []).map((row) => ({
+			label: need(row.feature, 'comparison feature'),
+			values: [row.includedWithNoom ?? false, row.includedWithAlternative ?? false],
+		}))}
+		cta={comparison.ctaText && link(comparison.cta) ? { text: comparison.ctaText, cta: link(comparison.cta)! } : undefined}
 	/>
 	<HowItWorks
-		eyebrow="How Noom Med works"
-		title="Making weight loss simple and clear"
-		image={howItWorksImage}
-		imageAlt="Smiling woman in a green sports top resting a hand on her head outdoors"
-		steps={[
-			{
-				title: 'Take a brief intake survey',
-				description: 'Share your health history and weight-loss goals and receive your clinical plan',
-			},
-			{
-				title: 'Connect with an expert clinician',
-				description: 'Meet a licensed clinician online who confirms whether medication is right for you',
-				image: stepTwoImage,
-				imageAlt: 'Smiling woman stretching both arms overhead against a blue sky',
-				imageFocus: '52% 40%',
-			},
-			{
-				title: 'Begin your treatment plan',
-				description: 'Get your medication delivered, plus daily lessons and coaching built around your goals',
-				image: stepThreeImage,
-				imageAlt: 'Woman doing a side stretch on the grass in a city park',
-				imageFocus: '55% 45%',
-			},
-			{
-				title: 'Ongoing care and medication',
-				description: 'Check in with your care team, adjust your dose, and get refills on schedule',
-				image: stepFourImage,
-				imageAlt: 'Smiling woman with her hands behind her head in a sunny park',
-				imageFocus: '45% 40%',
-			},
-		]}
+		eyebrow={howItWorks.eyebrow ?? undefined}
+		title={need(howItWorks.heading, 'howItWorks.heading')}
+		steps={(howItWorks.steps ?? []).map((step) => ({
+			title: need(step.title, 'step title'),
+			description: step.description ?? undefined,
+			image: need(step.image, `"${step.title}" image`),
+		}))}
 	/>
-	<Science
-		title="The science and research behind our treatment"
-		description="Noom yields the best weight-loss results by combining our proven, psychology-based approach with prescription weight-loss medications."
-	>
-		<StatCard caption="Lose up to 20% of your body weight with weight-loss medications" captionClass="max-w-69.25">
-			<DonutChart value="-20%" label="Body weight" />
-		</StatCard>
-		<StatCard caption="Lose 48% more weight with Noom Med plus GLP-1s." captionClass="max-w-63">
-			<CurveChart topLabel="Medication only" bottomLabel="Noom + medication" />
-		</StatCard>
-		<StatCard caption="97% of doctors recommend combining GLP-1s with lifestyle changes." captionClass="max-w-84.75">
-			<BarChart value="97%" />
-		</StatCard>
+	<Science title={need(science.heading, 'science.heading')} description={science.description ?? undefined}>
+		{
+			(science.stats ?? []).map((stat) => (
+				<StatCard caption={need(stat.caption, 'stat caption')} captionClass={stat.chart ? statCaptionClass[stat.chart] : undefined}>
+					{stat.chart === 'ring' && <DonutChart value={stat.figure ?? ''} label={stat.figureLabel ?? undefined} />}
+					{stat.chart === 'curves' && <CurveChart topLabel={stat.baselineLabel ?? ''} bottomLabel={stat.highlightLabel ?? ''} />}
+					{stat.chart === 'scale' && <BarChart value={stat.figure ?? ''} />}
+				</StatCard>
+			))
+		}
 	</Science>
 	<Testimonial
-		background={testimonialBg}
+		background={need(home.testimonialSection?.background, 'testimonialSection.background')}
 		testimonial={{
-			quote: '“Noom came through for me. I started medication and my care plan immediately after signing up. I feel healthy, empowered, and motivated to take care of myself.”',
-			author: 'Scott Tolinski',
-			image: scottImage,
-			imageAlt: 'Portrait of Scott smiling in a white sweatshirt',
-			stat: { value: '70lbs', label: 'lighter and thriving', countFrom: 10 },
+			quote: need(testimonial.quote, 'testimonial quote'),
+			author: need(testimonial.author, 'testimonial author'),
+			image: need(testimonial.portrait, 'testimonial portrait'),
+			stat:
+				testimonial.result?.value && testimonial.result.label
+					? { value: testimonial.result.value, label: testimonial.result.label, countFrom: testimonial.result.countFrom ?? undefined }
+					: undefined,
 		}}
 	/>
 
 	<Articles
-		title="Read more about GLP-1s"
-		description="A closer look at the science behind today’s most effective weight-loss medications"
-		moreLink={{ href: '#', label: 'See more articles' }}
-		articles={[
-			{
-				title: 'Ozempic® and Wegovy®: Understanding the risks and symptoms of pancreatitis',
-				href: '#',
-				date: '2025-08-21',
-				image: pancreatitisImage,
-				imageAlt: 'Patient talking with a clinician in an exam room',
-			},
-			{
-				title: 'Tirzepatide vs. semaglutide: Understanding and comparing side effects',
-				href: '#',
-				date: '2025-08-14',
-				image: sideEffectsImage,
-				imageAlt: 'Close-up of a sensor patch on an upper arm',
-			},
-			{
-				title: 'Qsymia® side effects: What to expect & how to manage them',
-				href: '#',
-				date: '2025-08-12',
-				image: qsymiaImage,
-				imageAlt: 'Woman working on a laptop at home',
-			},
-		]}
+		title={need(articles.heading, 'articlesSection.heading')}
+		description={articles.description ?? undefined}
+		moreLink={link(articles.moreLink)}
+		articles={(articles.articles ?? []).map((article) => ({
+			title: need(article.title, 'article title'),
+			href: need(article.url, `"${article.title}" URL`),
+			date: need(article.publishedAt, `"${article.title}" date`),
+			image: need(article.image, `"${article.title}" image`),
+		}))}
 	/>
 
 	<Cta
-		title="Start your journey today"
-		description="Take the first step toward a healthier, happier you with Noom Med."
-		cta={{ href: '#', label: 'See if you’re eligible' }}
-		image={ctaImage}
-		imageAlt="Four smiling women embracing outdoors under a blue sky"
+		title={need(callToAction.heading, 'callToAction.heading')}
+		description={callToAction.description ?? undefined}
+		cta={need(link(callToAction.cta), 'callToAction.cta')}
+		image={need(callToAction.image, 'callToAction.image')}
 	/>
 
 	<Faq
-		title="Frequently asked questions"
-		items={[
-			// Questions from noom.com/med; answers paraphrased from that page (facts kept, wording our own)
-			{
-				question: 'What exactly is Noom Med and how does it work?',
-				open: true,
-				answer: [
-					'Noom Med combines prescription weight-loss medication with Noom’s psychology-based approach to behavior change.',
-					'Licensed clinicians decide whether medication is right for you and manage it over time, while the Noom app and coaching help you build habits that keep the weight off.',
-				],
-			},
-			{
-				question: 'What weight loss medications does Noom Med offer?',
-				answer: [
-					'When clinically appropriate, Noom Med clinicians can prescribe GLP-1 medications such as Wegovy®, Zepbound® and Ozempic®, as well as oral options like metformin or the Wegovy® pill. Every prescription starts with a clinical evaluation.',
-				],
-			},
-			{
-				question: 'How much does weight loss medication cost with Noom?',
-				answer: [
-					'It depends on your plan and medication. The Noom Microdose GLP-1Rx Program starts at $79, with or without insurance. Plans for brand-name medications like Ozempic® and Zepbound® start at $39, plus whatever the medication costs you under your coverage.',
-					'Every plan includes full access to the Noom app, with psychology-based lessons, tracking tools and support.',
-				],
-			},
-			{
-				question: 'Do I need insurance to get weight-loss medications from Noom?',
-				answer: [
-					'No. Noom Med works with or without insurance. If you’re covered, Noom helps you get the most from your plan for medication and clinician visits; if you’re not, cash-pay options still give you access to clinicians and medication.',
-				],
-			},
-			{
-				question: 'How much weight can I expect to lose with Noom Med?',
-				answer: [
-					'Results depend on your medication, your health history and how consistently you follow the program. On average, Noom Med members lose 48% more weight in six months than people taking GLP-1 medications without Noom.‡',
-				],
-			},
-			{
-				question: 'How do I get started with Noom Med?',
-				answer: [
-					'Take a short online health assessment about your goals and medical history, then meet a clinician who’ll decide whether medication is right for you.',
-					'If you’re prescribed one, it’s sent to your pharmacy or shipped to your door — and the Noom app gives you tools, coaching and ongoing support along the way.',
-				],
-			},
-		]}
-		footnotes={[
-			'* Not all medications are available for home delivery. Availability of home delivery will depend on your insurance or cash pay status. If your clinician feels compounded medications are clinically appropriate for you, any compounded medications are not approved by the FDA or reviewed for quality, safety or efficacy. Novo Nordisk, Inc. is the only United States company with FDA-approved products containing semaglutide, identified under the trade names Rybelsus®, Ozempic® and Wegovy®. Lilly USA LLC is the only United States company with FDA-approved products containing tirzepatide identified under the trade names Zepbound® and Mounjaro®',
-			'1 Based on an independent third party survey of 251 primary care physicians who currently prescribe GLP-1 medications',
-			'† Based on retrospective study of self-reported data of active versus passive users who were offered the Noom program when being prescribed an early GLP-1.',
-			'‡ Following clinical trial information is for branded medications only: In a 68- and 72-week clinical trial studying Wegovy (2.4 mg) and Zepbound (15 mg) in patients without diabetes and with BMI >= 30, or BMI >= 27 with a weight-related condition, the average weight loss was 15% and 20%, when paired with diet and exercise changes (compared to 2.4% and 3.1%, respectively, with diet and exercise alone). The FDA does not review any compounded medication for safety or efficacy.',
-			'2 Every FSA/HSA plan is unique, and Noom does not provide medical, healthcare benefit, or tax advice to individuals. Noom cannot guarantee that any Noom services will qualify for every FSA/HSA plan. For additional information about FSA/HSA, look here or consult your tax advisor.\nMetformin is not FDA-approved for weight loss.',
-		]}
+		title={need(faq.heading, 'faq.heading')}
+		items={(faq.questions ?? []).map((item, i) => ({
+			question: need(item.question, 'FAQ question'),
+			// Paragraphs are separated by blank lines in the Studio
+			answer: need(item.answer, `"${item.question}" answer`).split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter(Boolean),
+			open: i === 0,
+		}))}
+		footnotes={faq.footnotes ?? []}
 	/>
 </BaseLayout>
