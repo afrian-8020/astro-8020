@@ -7,15 +7,15 @@ interface Props {
 const { value } = Astro.props;
 ---
 
-<!--
+{/*
 	Decorative: the stat is repeated in the card caption. Illustrative proportions from the design, not data-driven.
 	Animates once on arrival and replays on card hover (script below): the bar fills while the pill rides its edge, counting up.
--->
+*/}
 <svg viewBox="0 0 448 320" class="block size-full" aria-hidden="true" data-bar>
 	<rect x="52" y="120" width="344" height="81" rx="40.5" class="fill-surface-muted" data-bar-track></rect>
 	<rect x="80" y="148" width="288" height="24" rx="12" class="fill-secondary" opacity="0.2" data-bar-remaining></rect>
 	<rect x="80" y="148" width="258" height="24" rx="12" class="fill-secondary" data-bar-fill></rect>
-	<!-- Marker pill with a 4px ring in the track color -->
+	{/* Marker pill with a 4px ring in the track color */}
 	<g data-bar-pill>
 		<rect x="263" y="138" width="84" height="44" rx="22" stroke-width="4" class="fill-primary stroke-surface-muted"></rect>
 		<text x="305" y="160" text-anchor="middle" dominant-baseline="central" class="fill-ink-inverse font-display text-h5 font-light" data-bar-value
@@ -28,6 +28,7 @@ const { value } = Astro.props;
 	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { replayOnHover } from '../../../scripts/chart-hover';
+	import { richMotion } from '../../../scripts/motion';
 
 	gsap.registerPlugin(ScrollTrigger);
 
@@ -38,7 +39,8 @@ const { value } = Astro.props;
 	const PILL_LEAD = 33;
 	const PILL_MIN_CENTER = 122; // keeps the pill inside the track while the fill is still short
 
-	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+	// Desktop only (see motion.ts) — elsewhere the chart shows in its final state
+	if (richMotion) {
 		document.querySelectorAll<SVGSVGElement>('[data-bar]').forEach((svg) => {
 			const q = (name: string) => svg.querySelector<SVGElement>(`[data-bar-${name}]`)!;
 			const track = q('track');

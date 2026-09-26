@@ -80,13 +80,14 @@ const { name, image, imageAlt, badges = [], registered = false, disclosure, prim
 	</div>
 
 	<div class="relative h-56 shrink-0 overflow-hidden sm:h-76.5 sm:w-76">
-		<!-- Image framing from Figma: oversized, anchored low and slightly right so it bleeds off the card -->
+		{/* Image framing from Figma: oversized, anchored low and slightly right so it bleeds off the card */}
 		<div class="absolute top-[8.5%] bottom-[-25.16%] left-[54.3%] aspect-[1200/1040] -translate-x-1/2">
 			<Image
 				src={image}
 				alt={imageAlt}
-				widths={[420, 840]}
+				widths={[420, 840, 1200]}
 				sizes="420px"
+				quality={90}
 				class="absolute inset-0 size-full max-w-none object-cover"
 				data-product-card-image
 			/>

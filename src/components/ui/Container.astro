@@ -1,12 +1,14 @@
 ---
-interface Props {
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'div'>, 'class'> {
 	as?: 'div' | 'section' | 'header' | 'footer' | 'nav';
 	/** `content` (default) caps the content at 1392px and centers it; `full` spans edge to edge */
 	width?: 'content' | 'full';
 	class?: string;
 }
 
-const { as: Tag = 'div', width = 'content', class: className } = Astro.props;
+const { as: Tag = 'div', width = 'content', class: className, ...attrs } = Astro.props;
 
 // box-content keeps the gutter outside max-w-content, so the content itself is 1392px wide
 const widths = {
@@ -15,6 +17,6 @@ const widths = {
 };
 ---
 
-<Tag class:list={[widths[width], className]}>
+<Tag class:list={[widths[width], className]} {...attrs}>
 	<slot />
 </Tag>

@@ -10,6 +10,8 @@
  *   data-reveal-group="name"  consecutive elements with the same group start together
  *
  * Blocks: `data-reveal="block"` (e.g. buttons) fades the element in as a whole, on the same timing.
+ * Cards: `data-reveal="card"` fades the element in where it sits. Desktop only (motion.ts) —
+ * elsewhere cards simply show.
  *
  * Counters (src/scripts/count.ts): a `[data-count-to]` element inside revealed text shows
  * `data-count-from` while it reveals, then counts up once that element has finished revealing —
@@ -21,11 +23,14 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import { countUp, resetCounters } from './count';
+import { richMotion } from './motion';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const LINE = { duration: 0.6, stagger: 0.1, ease: 'power2.out' };
 const DEFAULT_DELAY = 0.25;
+// Cards fade on an even in-out curve: an ease-out front-loads the change and reads as a pop, then a drag
+const CARD = { duration: 1, ease: 'sine.inOut' };
 const done = () => {
 	document.documentElement.removeAttribute('data-reveal-pending');
 	document.documentElement.dataset.revealReady = '';
@@ -36,7 +41,9 @@ const init = () => {
 
 	document.querySelectorAll<HTMLElement>('main > section').forEach((section) => {
 		// Skip text with no layout (hidden slides, rows hidden at this breakpoint) — there are no lines to split
-		const targets = [...section.querySelectorAll<HTMLElement>('[data-reveal]')].filter((el) => el.getClientRects().length > 0);
+		const targets = [...section.querySelectorAll<HTMLElement>('[data-reveal]')].filter(
+			(el) => el.getClientRects().length > 0 && (richMotion || el.dataset.reveal !== 'card'),
+		);
 		if (!targets.length) return;
 
 		// Counters start from their "from" value; set before splitting so the split (and its revert) keeps it
@@ -44,10 +51,14 @@ const init = () => {
 
 		// Text splits into lines; blocks animate as one piece. Text holding an image-synced counter is
 		// treated as a block too: splitting/reverting would swap out the counter node mid-count.
-		const isBlock = (el: HTMLElement) => el.dataset.reveal === 'block' || !!el.querySelector('[data-count-with]');
+		const isCard = (el: HTMLElement) => el.dataset.reveal === 'card';
+		const isBlock = (el: HTMLElement) => el.dataset.reveal === 'block' || isCard(el) || !!el.querySelector('[data-count-with]');
 		const splits = targets.map((el) => (isBlock(el) ? null : SplitText.create(el, { type: 'lines' })));
 		// Set the start state now (not on the next tick) so nothing flashes before it's hidden
-		splits.forEach((split, i) => gsap.set(split ? split.lines : targets[i], { autoAlpha: 0 }));
+		splits.forEach((split, i) =>
+			// Cards get their own compositor layer while fading, so the browser blends them instead of repainting
+			gsap.set(split ? split.lines : targets[i], { autoAlpha: 0, ...(isCard(targets[i]) && { willChange: 'opacity' }) }),
+		);
 
 		const tl = gsap.timeline({ paused: true });
 
@@ -66,10 +77,11 @@ const init = () => {
 				split ? split.lines : el,
 				{
 					autoAlpha: 1,
-					...LINE,
+					...(isCard(el) ? CARD : LINE),
 					// As each element finishes: restore its original markup (so it reflows on resize), then run its counters
 					onComplete: () => {
 						split?.revert();
+						if (isCard(el)) el.style.willChange = '';
 						countUp(el, '[data-count-to]:not([data-count-with])');
 					},
 				},

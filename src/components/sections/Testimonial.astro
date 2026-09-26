@@ -13,20 +13,22 @@ interface Props {
 const { background, testimonial } = Astro.props;
 ---
 
-<!-- A single testimonial card over a fixed full-bleed photo -->
+{/* A single testimonial card over a fixed full-bleed photo */}
 <section class="relative isolate overflow-hidden bg-surface-muted py-20 lg:py-50">
-	<!--
-		Fixed backdrop: the photo is pinned to the viewport and the section scrolls over it like a window.
+	{/*
+		Fixed backdrop (desktop): the photo is pinned to the viewport and the section scrolls over it like a window.
+		Below lg it's a regular cover image.
 		clip-path (unlike overflow) also clips fixed-position children, so it only shows through this section.
 		The mirror + 1.25 zoom (anchored bottom) lives on the image itself — a transform on the wrapper would break `fixed`.
-	-->
+	*/}
 	<div class="absolute inset-0 -z-10 [clip-path:inset(0)]" aria-hidden="true">
 		<Image
 			src={background}
 			alt=""
-			widths={[768, 1456]}
-			sizes="100vw"
-			class="fixed inset-0 size-full max-w-none origin-bottom scale-[-1.25_1.25] object-cover object-right"
+			widths={[768, 1024, 1456]}
+			sizes="125vw"
+			quality={90}
+			class="absolute inset-0 size-full max-w-none origin-bottom scale-[-1.25_1.25] object-cover object-right lg:fixed"
 		/>
 	</div>
 

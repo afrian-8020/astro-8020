@@ -14,10 +14,10 @@ const { steps, activeIndex = 0, interval = 5, class: className } = Astro.props;
 const uid = `steps-${crypto.randomUUID().slice(0, 8)}`;
 ---
 
-<!--
+{/*
 	Single-open accordion that auto-advances: the open step's top line fills as a progress bar, then the
 	next step opens (looping). Clicking a step opens it and restarts the timer. Runs only while in view.
--->
+*/}
 <ol class:list={['flex flex-col gap-4', className]} data-steps data-interval={interval}>
 	{steps.map((step, i) => <StepItem id={`${uid}-${i}`} number={i + 1} {...step} active={i === activeIndex} />)}
 </ol>
@@ -90,6 +90,8 @@ const uid = `steps-${crypto.randomUUID().slice(0, 8)}`;
 				next.trigger.setAttribute('aria-expanded', 'true');
 				open(next.panel);
 				current = index;
+				// Let the surrounding section react (e.g. swap its image)
+				list.dispatchEvent(new CustomEvent('steps:change', { detail: { index }, bubbles: true }));
 			}
 			startTimer();
 		};

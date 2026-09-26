@@ -14,10 +14,10 @@ const baseClip = `curve-base-${uid}`;
 const highlightClip = `curve-highlight-${uid}`;
 ---
 
-<!--
+{/*
 	Decorative: the stat is repeated in the card caption. Two declining curves; the highlighted one drops further.
 	Animates once on arrival and replays on card hover (script below): curves sweep in with their area, legend markers build alongside.
--->
+*/}
 <svg viewBox="0 0 448 320" class="block size-full" aria-hidden="true" data-curves>
 	<defs>
 		<clipPath id={baseClip}><rect x="0" y="0" width="448" height="320" data-curves-clip="base"></rect></clipPath>
@@ -45,7 +45,7 @@ const highlightClip = `curve-highlight-${uid}`;
 			class="stroke-primary"></path>
 	</g>
 
-	<!-- Legend markers: dot + stem -->
+	{/* Legend markers: dot + stem */}
 	<g class="fill-secondary">
 		<circle cx="36" cy="35" r="2.67" data-curves-dot="base"></circle>
 		<rect x="35.5" y="35" width="1" height="36" data-curves-stem="base"></rect>
@@ -55,8 +55,8 @@ const highlightClip = `curve-highlight-${uid}`;
 		<rect x="35.5" y="87" width="1" height="185" data-curves-stem="highlight"></rect>
 	</g>
 
-	<text x="48" y="35" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase" data-curves-label="base">{topLabel}</text>
-	<text x="48" y="271" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase" data-curves-label="highlight"
+	<text x="48" y="35" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase max-sm:text-body-sm max-sm:tracking-[0.08em]" data-curves-label="base">{topLabel}</text>
+	<text x="48" y="271" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase max-sm:text-body-sm max-sm:tracking-[0.08em]" data-curves-label="highlight"
 		>{bottomLabel}</text
 	>
 </svg>
@@ -65,10 +65,12 @@ const highlightClip = `curve-highlight-${uid}`;
 	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { replayOnHover } from '../../../scripts/chart-hover';
+	import { richMotion } from '../../../scripts/motion';
 
 	gsap.registerPlugin(ScrollTrigger);
 
-	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+	// Desktop only (see motion.ts) — elsewhere the chart shows in its final state
+	if (richMotion) {
 		document.querySelectorAll<SVGSVGElement>('[data-curves]').forEach((svg) => {
 			const pick = (attr: string, key: 'base' | 'highlight') => svg.querySelector<SVGElement>(`[data-curves-${attr}="${key}"]`)!;
 			const clip = { base: pick('clip', 'base'), highlight: pick('clip', 'highlight') };

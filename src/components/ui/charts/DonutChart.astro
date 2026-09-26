@@ -18,7 +18,7 @@ const maskId = `donut-dots-${crypto.randomUUID().slice(0, 8)}`;
 const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8 125.7 141.5';
 ---
 
-<!-- Decorative: the stat is repeated in the card caption. Animates once on arrival and replays on card hover (script below). -->
+{/* Decorative: the stat is repeated in the card caption. Animates once on arrival and replays on card hover (script below). */}
 <svg viewBox="0 0 448 320" class="block size-full" aria-hidden="true" data-donut>
 	<defs>
 		<mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="448" height="320">
@@ -27,7 +27,7 @@ const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8
 	</defs>
 
 	<circle cx={cx} cy={cy} r="122" class="fill-surface-muted" data-donut-disc></circle>
-	<!-- Ring as two counter-clockwise half arcs from 12 o'clock, so it draws in the same direction as the highlight -->
+	{/* Ring as two counter-clockwise half arcs from 12 o'clock, so it draws in the same direction as the highlight */}
 	<path
 		d={`M${cx} ${cy - r} A${r} ${r} 0 0 0 ${cx} ${cy + r} A${r} ${r} 0 0 0 ${cx} ${cy - r}`}
 		fill="none"
@@ -35,7 +35,7 @@ const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8
 		stroke-linecap="round"
 		class="stroke-secondary"
 		data-donut-ring></path>
-	<!-- Highlight arc: 12 o'clock → 9 o'clock -->
+	{/* Highlight arc: 12 o'clock → 9 o'clock */}
 	<path
 		d={`M${cx} ${cy - r} A${r} ${r} 0 0 0 ${cx - r} ${cy}`}
 		fill="none"
@@ -43,7 +43,7 @@ const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8
 		stroke-linecap="round"
 		class="stroke-primary"
 		data-donut-arc></path>
-	<!-- Dotted track inside the arc, ending in a chevron -->
+	{/* Dotted track inside the arc, ending in a chevron */}
 	<path d={dotsPath} fill="none" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 9" class="stroke-white" mask={`url(#${maskId})`}
 	></path>
 	<g data-donut-chevron>
@@ -62,7 +62,7 @@ const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8
 	>
 	{
 		label && (
-			<text x={cx} y="188" text-anchor="middle" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase" data-donut-label>
+			<text x={cx} y="188" text-anchor="middle" dominant-baseline="central" class="fill-ink font-sans text-eyebrow uppercase max-sm:text-body-sm max-sm:tracking-[0.08em]" data-donut-label>
 				{label}
 			</text>
 		)
@@ -73,10 +73,12 @@ const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8
 	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { replayOnHover } from '../../../scripts/chart-hover';
+	import { richMotion } from '../../../scripts/motion';
 
 	gsap.registerPlugin(ScrollTrigger);
 
-	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+	// Desktop only (see motion.ts) — elsewhere the chart shows in its final state
+	if (richMotion) {
 		document.querySelectorAll<SVGSVGElement>('[data-donut]').forEach((svg) => {
 			const q = <T extends SVGElement>(name: string) => svg.querySelector<T>(`[data-donut-${name}]`);
 			const disc = q('disc');

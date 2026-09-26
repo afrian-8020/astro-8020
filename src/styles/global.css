@@ -187,24 +187,135 @@
 	}
 }
 
-/* Text reveal (src/scripts/reveal.ts): keep marked text hidden until it's split, so it doesn't flash */
-[data-reveal-pending] [data-reveal] {
+/* Text reveal (src/scripts/reveal.ts) and logo reveal (logo-reveal.ts): keep them hidden until prepared, so nothing flashes */
+[data-reveal-pending] [data-reveal],
+[data-reveal-pending] [data-logo-reveal] {
 	visibility: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	[data-reveal-pending] [data-reveal] {
+	[data-reveal-pending] [data-reveal],
+	[data-reveal-pending] [data-logo-reveal] {
 		visibility: visible;
 	}
 }
 
-/* Image reveal (src/scripts/image-reveal.ts): hide until the script has applied the start mask */
-[data-reveal-pending] [data-image-reveal] {
-	visibility: hidden;
+/* Image reveal (src/scripts/image-reveal.ts, desktop only): hide until the script has applied the start mask */
+@media (min-width: 64rem) {
+	[data-reveal-pending] [data-image-reveal] {
+		visibility: hidden;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
 	[data-reveal-pending] [data-image-reveal] {
 		visibility: visible;
+	}
+}
+
+/*
+ * Stacked sections (src/scripts/stack.ts): while the next section slides over a [data-stack] section,
+ * it drifts down by --stack-lag × viewport height (so it scrolls slower) and its overlay fades to --stack-dim.
+ * Scroll-driven animations run on the compositor, in the same frame as the scroll — no JS lag or jitter.
+ * Range: from the section's bottom edge reaching the viewport bottom (entry-crossing 100%)
+ * to it reaching the viewport top (exit-crossing 100%). Transforms don't affect the timeline, so no feedback loop.
+ */
+@keyframes stack-drift {
+	to {
+		translate: 0 calc(var(--stack-lag, 0.5) * 100vh);
+	}
+}
+
+@keyframes stack-dim {
+	to {
+		opacity: var(--stack-dim, 0);
+	}
+}
+
+/* Desktop only (≥ 64rem, matches richMotion in src/scripts/motion.ts) */
+@supports (animation-timeline: view()) {
+	@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) {
+		[data-stack] {
+			view-timeline: --stack block;
+			animation: stack-drift linear both;
+			animation-timeline: --stack;
+			animation-range: entry-crossing 100% exit-crossing 100%;
+			will-change: translate;
+		}
+
+		/* Driven by the section's timeline, so the overlay stays exactly in step with the drift */
+		[data-stack-overlay] {
+			animation: stack-dim linear both;
+			animation-timeline: --stack;
+			animation-range: entry-crossing 100% exit-crossing 100%;
+		}
+	}
+}
+
+/*
+ * Parallax backgrounds: a [data-parallax] image drifts through its [data-parallax-scope] section's view
+ * timeline, so it moves slower than the page. Per image:
+ *   --parallax-range  view-timeline range (default cover: section entering → leaving)
+ *   --parallax-from / --parallax-to  vertical translate at the range's start / end (% of the image's height)
+ * Desktop only; compositor-driven like the stacked sections above.
+ */
+@keyframes parallax-shift {
+	from {
+		translate: 0 var(--parallax-from, 0%);
+	}
+	to {
+		translate: 0 var(--parallax-to, 0%);
+	}
+}
+
+@supports (animation-timeline: view()) {
+	@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) {
+		[data-parallax-scope] {
+			view-timeline: --parallax block;
+		}
+
+		[data-parallax] {
+			animation: parallax-shift linear both;
+			animation-timeline: --parallax;
+			animation-range: var(--parallax-range, cover);
+		}
+	}
+}
+
+/*
+ * Footer reveal (Footer.astro): while the footer scrolls in, its content drifts from -50% to its resting
+ * place, so it moves at half speed inside the clipped box and emerges from its middle rather than its edge.
+ * Range: the footer's top reaching the viewport bottom (entry 0%) → fully in view (entry 100%). Desktop only.
+ */
+@keyframes footer-rise {
+	from {
+		translate: 0 -50%;
+	}
+}
+
+@supports (animation-timeline: view()) {
+	@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) {
+		[data-footer-reveal] {
+			view-timeline: --footer block;
+			overflow: clip;
+		}
+
+		[data-footer-reveal-content] {
+			animation: footer-rise linear both;
+			animation-timeline: --footer;
+			animation-range: entry 0% entry 100%;
+		}
+	}
+}
+
+/*
+ * Tablet only (md → lg): balance section headings and their subheadings so lines break evenly.
+ * Subheadings are the paragraphs in a section's <header>, plus anything marked [data-subheading].
+ */
+@media (min-width: 48rem) and (max-width: 63.98rem) {
+	main :is(h1, h2),
+	main section header p,
+	[data-subheading] {
+		text-wrap: balance;
 	}
 }

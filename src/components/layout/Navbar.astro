@@ -1,6 +1,7 @@
 ---
 import Logo from '../../assets/logo.svg';
 import MenuIcon from '../../assets/icons/menu.svg';
+import CloseIcon from '../../assets/icons/close.svg';
 import Container from '../ui/Container.astro';
 import NavLink from '../ui/NavLink.astro';
 import Button from '../ui/Button.astro';
@@ -35,9 +36,13 @@ const {
 } = Astro.props;
 ---
 
+{/*
+	States: over the hero (overlay, dark theme, transparent) · solid (white bar, dark content) · menu open (below md:
+	always solid white, full-screen panel, page scroll locked). `data-solid` / `data-menu-open` are set by the script.
+*/}
 <header
 	class:list={[
-		'top-0 z-50 text-ink transition-colors duration-300 ease-in-out data-solid:bg-surface-white',
+		'group/nav top-0 z-50 text-ink transition-colors duration-300 ease-in-out data-solid:bg-surface-white',
 		overlay ? 'theme-dark fixed inset-x-0' : 'sticky',
 		className,
 	]}
@@ -45,8 +50,9 @@ const {
 	data-overlay={overlay ? '' : undefined}
 	data-solid={overlay ? undefined : ''}
 >
-	<Container class="flex items-center justify-between gap-6 py-3">
-		<a href={import.meta.env.BASE_URL} aria-label="Home" class="shrink-0">
+	{/* Desktop: the bar grows slightly taller once it's solid (past the hero) */}
+	<Container class="flex items-center justify-between gap-6 py-3 transition-[padding] duration-300 ease-in-out lg:group-data-solid/nav:py-4">
+		<a href={import.meta.env.BASE_URL} aria-label="Home" class="shrink-0" data-logo-reveal>
 			<Logo class="h-5 w-auto" aria-hidden="true" />
 		</a>
 
@@ -65,24 +71,30 @@ const {
 			<Button href={cta.href} variant="tertiary" size="sm" class="duration-300">{cta.label}</Button>
 			<button
 				type="button"
-				class="-mr-1 p-1 md:hidden"
+				class="-mr-1 cursor-pointer p-1 md:hidden"
 				aria-label="Open menu"
 				aria-expanded="false"
 				aria-controls="navbar-mobile-menu"
 				data-navbar-toggle
 			>
-				<MenuIcon class="size-6" aria-hidden="true" />
+				<MenuIcon class="size-6 group-data-menu-open/nav:hidden" aria-hidden="true" />
+				<CloseIcon class="hidden size-6 group-data-menu-open/nav:block" aria-hidden="true" />
 			</button>
 		</nav>
 	</Container>
 
-	<div id="navbar-mobile-menu" class="hidden border-t border-border-subtle bg-surface transition-colors duration-300 md:hidden" data-navbar-menu>
-		<Container as="nav" class="py-4">
-			<ul class="flex flex-col gap-4">
+	{/* Full-screen panel under the bar (viewport height minus the bar); fades in/out */}
+	<div
+		id="navbar-mobile-menu"
+		class="invisible absolute inset-x-0 top-full h-[calc(100dvh-100%)] overflow-y-auto border-t border-border-subtle bg-surface-white opacity-0 transition-[opacity,visibility] duration-300 ease-in-out group-data-menu-open/nav:visible group-data-menu-open/nav:opacity-100 md:hidden"
+		data-navbar-menu
+	>
+		<Container as="nav" class="py-8" aria-label="Mobile">
+			<ul class="flex flex-col gap-6">
 				{
 					links.map((link) => (
 						<li>
-							<NavLink href={link.href} class="text-body">
+							<NavLink href={link.href} class="font-display text-h5! font-light">
 								{link.label}
 							</NavLink>
 						</li>
@@ -94,29 +106,62 @@ const {
 </header>
 
 <script>
-	document.querySelectorAll<HTMLElement>('[data-navbar]').forEach((navbar) => {
-		// Overlay mode: go solid once the first section (the hero) has scrolled out from under the bar
-		const hero = document.querySelector('main > :first-child');
-		if (navbar.hasAttribute('data-overlay') && hero) {
-			const setSolid = (solid: boolean) => {
-				navbar.toggleAttribute('data-solid', solid);
-				navbar.classList.toggle('theme-dark', !solid);
-			};
-			new IntersectionObserver(([entry]) => setSolid(!entry.isIntersecting), {
-				// Shrink the viewport's top edge by the bar's height so the switch happens as the hero's bottom passes under it
-				rootMargin: `-${navbar.offsetHeight}px 0px 0px 0px`,
-			}).observe(hero);
-		}
+	import { lenis } from '../../scripts/smooth-scroll';
 
+	const desktop = window.matchMedia('(min-width: 48rem)'); // md — the hamburger only exists below this
+
+	document.querySelectorAll<HTMLElement>('[data-navbar]').forEach((navbar) => {
+		const overlay = navbar.hasAttribute('data-overlay');
 		const toggle = navbar.querySelector<HTMLButtonElement>('[data-navbar-toggle]');
 		const menu = navbar.querySelector<HTMLElement>('[data-navbar-menu]');
+
+		let pastHero = false;
+		let menuOpen = false;
+
+		// One place decides the look: solid white whenever not over the hero, or whenever the menu is open
+		const render = () => {
+			const solid = !overlay || pastHero || menuOpen;
+			navbar.toggleAttribute('data-solid', solid);
+			navbar.toggleAttribute('data-menu-open', menuOpen);
+			if (overlay) navbar.classList.toggle('theme-dark', !solid);
+		};
+
+		// Overlay mode: go solid once the first section (the hero) has scrolled out from under the bar
+		const hero = document.querySelector('main > :first-child');
+		if (overlay && hero) {
+			new IntersectionObserver(
+				([entry]) => {
+					pastHero = !entry.isIntersecting;
+					render();
+				},
+				// Shrink the viewport's top edge by the bar's height so the switch happens as the hero's bottom passes under it
+				{ rootMargin: `-${navbar.offsetHeight}px 0px 0px 0px` },
+			).observe(hero);
+		}
+
 		if (!toggle || !menu) return;
 
-		toggle.addEventListener('click', () => {
-			const open = toggle.getAttribute('aria-expanded') !== 'true';
+		const setMenu = (open: boolean) => {
+			if (open === menuOpen) return;
+			menuOpen = open;
 			toggle.setAttribute('aria-expanded', String(open));
 			toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-			menu.classList.toggle('hidden', !open);
+			// Lock the page behind the full-screen menu
+			document.documentElement.style.overflow = open ? 'hidden' : '';
+			if (open) lenis?.stop();
+			else lenis?.start();
+			render();
+		};
+
+		toggle.addEventListener('click', () => setMenu(!menuOpen));
+		menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape' && menuOpen) {
+				setMenu(false);
+				toggle.focus();
+			}
 		});
+		// The menu doesn't exist at md+, so close it if the window grows past the breakpoint
+		desktop.addEventListener('change', (event) => event.matches && setMenu(false));
 	});
 </script>

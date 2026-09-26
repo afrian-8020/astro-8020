@@ -20,20 +20,24 @@ interface Props {
 const { title, description, image, imageAlt, badge, cta, features = [] } = Astro.props;
 ---
 
-<section class="theme-dark relative isolate flex min-h-svh overflow-hidden bg-surface pt-24 pb-10 lg:min-h-205">
+{/* data-parallax-scope + the image's data-parallax: background drifts slower than the page (global.css, desktop) */}
+<section class="theme-dark relative isolate flex min-h-svh overflow-hidden bg-surface pt-24 pb-10 lg:min-h-205" data-parallax-scope>
 	<Image
 		src={image}
 		alt={imageAlt}
 		widths={[640, 1024, 1456]}
-		sizes="100vw"
+		sizes="(min-width: 1024px) 132vw, 100vw"
+		quality={90}
 		loading="eager"
 		fetchpriority="high"
 		class="absolute inset-0 -z-10 size-full max-w-none object-cover object-[70%_center] lg:inset-auto lg:top-[-27.93%] lg:left-[-18.96%] lg:h-[128.9%] lg:w-[132.08%]"
+		style="--parallax-range: exit; --parallax-to: 18%"
+		data-parallax
 	/>
-	<!-- Keeps text legible on tablet, where the copy sits over the brightest part of the photo -->
+	{/* Keeps text legible on tablet, where the copy sits over the brightest part of the photo */}
 	<div class="absolute inset-0 -z-10 hidden bg-surface/40 md:block lg:hidden" aria-hidden="true"></div>
 
-	<!-- Mobile: centered lockup, vertically centered, no feature row. Tablet+: left-aligned with features at the bottom. -->
+	{/* Mobile: centered lockup, vertically centered, no feature row. Tablet+: left-aligned with features at the bottom. */}
 	<Container class="flex flex-1 flex-col justify-center gap-16 md:justify-between">
 		<div class="flex max-w-186.25 flex-col items-center gap-10 text-center md:items-start md:text-left">
 			{
@@ -46,7 +50,7 @@ const { title, description, image, imageAlt, badge, cta, features = [] } = Astro
 			}
 			<h1 class="text-h3 md:text-h2 lg:max-w-169 lg:text-h1" data-reveal>{title}</h1>
 			<div class="flex max-w-163.5 flex-col items-center gap-6 md:items-start">
-				<p class="text-body-lg" data-reveal>{description}</p>
+				<p class="text-body-lg" data-reveal data-subheading>{description}</p>
 				{cta && <Button href={cta.href} reveal>{cta.label}</Button>}
 			</div>
 		</div>

@@ -47,9 +47,13 @@ const socials = [
 ];
 ---
 
-<footer class="theme-dark bg-surface py-20 text-ink">
-	<Container class="flex flex-col gap-14 lg:flex-row lg:justify-between">
-		<a href={import.meta.env.BASE_URL} aria-label="Home" class="shrink-0 self-start">
+{/*
+	Desktop reveal (global.css, "Footer reveal"): as the footer scrolls in, its content moves at half speed inside
+	the clipped box, starting shifted up by half its height — so it emerges from its middle as the page slides away.
+*/}
+<footer class="theme-dark bg-surface text-ink" data-footer-reveal>
+	<Container class="flex flex-col gap-14 py-20 lg:flex-row lg:justify-between" data-footer-reveal-content>
+		<a href={import.meta.env.BASE_URL} aria-label="Home" class="shrink-0 self-start" data-logo-reveal>
 			<Logo class="h-5 w-auto" aria-hidden="true" />
 		</a>
 

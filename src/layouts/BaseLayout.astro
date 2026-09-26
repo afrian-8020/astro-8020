@@ -21,7 +21,7 @@ const { title, description = 'Built with Astro' } = Astro.props;
 		<link rel="icon" href={`${import.meta.env.BASE_URL}favicon.ico`} />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
-		<!-- Hide [data-reveal] text until the reveal script has prepared it; show it anyway if the script hasn't run within 3s -->
+		{/* Hide [data-reveal] text until the reveal script has prepared it; show it anyway if the script hasn't run within 3s */}
 		<script is:inline>
 			document.documentElement.setAttribute('data-reveal-pending', '');
 			setTimeout(() => {
@@ -31,14 +31,16 @@ const { title, description = 'Built with Astro' } = Astro.props;
 	</head>
 	<body class="flex min-h-dvh flex-col">
 		<slot name="header"><Navbar /></slot>
-		<main class="flex-1">
+		<main class="relative z-10 flex-1 bg-surface">
 			<slot />
 		</main>
 		<Footer />
 		<script>
+			import '../scripts/smooth-scroll';
 			import '../scripts/reveal';
 			import '../scripts/stack';
 			import '../scripts/image-reveal';
+			import '../scripts/logo-reveal';
 		</script>
 	</body>
 </html>

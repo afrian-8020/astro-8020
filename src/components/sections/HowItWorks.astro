@@ -6,33 +6,74 @@ import StepList from '../patterns/StepList.astro';
 
 type StepListProps = ComponentProps<typeof StepList>;
 
+interface Step {
+	title: string;
+	description?: string;
+	/** Photo shown while this step is open (falls back to the section image) */
+	image?: ImageMetadata;
+	imageAlt?: string;
+	/** Focal point for the crop, as CSS object-position (e.g. "52% 40%") so the subject stays in frame */
+	imageFocus?: string;
+}
+
 interface Props {
 	eyebrow?: string;
 	title: string;
+	/** Default photo — used by any step without its own */
 	image: ImageMetadata;
 	imageAlt: string;
-	steps: StepListProps['steps'];
+	imageFocus?: string;
+	steps: Step[];
 	activeStep?: StepListProps['activeIndex'];
 }
 
-const { eyebrow, title, image, imageAlt, steps, activeStep = 0 } = Astro.props;
+const { eyebrow, title, image, imageAlt, imageFocus = '52% center', steps, activeStep = 0 } = Astro.props;
+
+// One photo per step; they crossfade as the accordion moves (script below)
+const photos = steps.map((step) => {
+	const src = step.image ?? image;
+	const aspect = src.width / src.height;
+	return {
+		src,
+		alt: step.image ? (step.imageAlt ?? '') : imageAlt,
+		focus: step.image ? (step.imageFocus ?? 'center') : imageFocus,
+		// object-cover fills the panel's height, so the photo renders wider than the panel: request that width
+		// (desktop panel ≥ 50vw × 110svh; mobile panel is 4:3 at 100vw). Up to the original file's width.
+		sizes: `(min-width: 1024px) max(50vw, ${Math.ceil(110 * aspect)}vh), max(100vw, ${Math.ceil(75 * aspect)}vw)`,
+		widths: [...new Set([640, 1024, 1536, 2048].filter((w) => w < src.width).concat(src.width))],
+	};
+});
 ---
 
-<!-- Split layout: image half bleeds to the left edge; content half aligns its right edge with the page container -->
-<!--
+{/* Split layout: image half bleeds to the left edge; content half aligns its right edge with the page container */}
+{/*
 	Desktop: at least 110% of the viewport tall, with extra bottom padding so the accordion stays readable before the next section arrives.
 	data-stack: while the next section slides over it, this one scrolls at half speed and dims to 40% black (src/scripts/stack.ts)
--->
+*/}
 <section class="theme-dark grid bg-surface text-ink lg:min-h-[110svh] lg:grid-cols-2" data-stack="0.5" data-stack-dim="0.4">
-	<!-- Image reveal on arrival (src/scripts/image-reveal.ts) -->
-	<div class="relative aspect-4/3 overflow-hidden bg-surface-white lg:aspect-auto" data-image-reveal>
-		<Image
-			src={image}
-			alt={imageAlt}
-			widths={[640, 1024, 1512]}
-			sizes="(min-width: 1024px) 50vw, 100vw"
-			class="absolute inset-0 size-full object-cover object-[52%_center]"
-		/>
+	{/*
+		Image reveal on arrival (src/scripts/image-reveal.ts); one photo per step, swapped as steps change (script below).
+		Parallax (global.css, desktop): photos are 20% taller than the panel and drift -8% → 8% through it.
+	*/}
+	<div class="relative aspect-4/3 overflow-hidden bg-surface-white lg:aspect-auto" data-image-reveal data-hiw-photos data-parallax-scope>
+		{
+			photos.map((photo, i) => (
+				// Wrapper carries the swap mask; the image inside carries the zoom (same split as the arrival reveal)
+				<div class="absolute inset-0" style={`opacity: ${i === activeStep ? 1 : 0}`} aria-hidden={i === activeStep ? undefined : 'true'} data-hiw-photo>
+					<Image
+						src={photo.src}
+						alt={photo.alt}
+						widths={photo.widths}
+						sizes={photo.sizes}
+						quality={95}
+						loading="lazy"
+						class="absolute inset-0 size-full object-cover lg:top-[-10%] lg:h-[120%]"
+						style={`object-position: ${photo.focus}; --parallax-from: -8%; --parallax-to: 8%`}
+						data-parallax
+					/>
+				</div>
+			))
+		}
 	</div>
 
 	<div
@@ -43,7 +84,60 @@ const { eyebrow, title, image, imageAlt, steps, activeStep = 0 } = Astro.props;
 			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
 		</header>
 
-		<StepList steps={steps} activeIndex={activeStep} />
+		<StepList steps={steps.map(({ title, description }) => ({ title, description }))} activeIndex={activeStep} />
 	</div>
 </section>
 
+<script>
+	import { gsap } from 'gsap';
+	import { reducedMotion, richMotion } from '../../scripts/motion';
+	import { playImageReveal } from '../../scripts/image-reveal';
+
+	// Swap to the open step's photo, layered on top of the current one. Desktop: the same mask + zoom reveal
+	// as on arrival. Tablet/mobile: a plain crossfade (decorative effects are desktop-only, see motion.ts).
+	// Safe under rapid switching: only the active swap runs, and cleanup always targets the latest step.
+	document.querySelectorAll<HTMLElement>('[data-hiw-photos]').forEach((media) => {
+		const photos = [...media.querySelectorAll<HTMLElement>('[data-hiw-photo]')];
+		const section = media.closest('section');
+		let current = Math.max(0, photos.findIndex((photo) => photo.style.opacity !== '0'));
+		let swap: gsap.core.Timeline | gsap.core.Tween | null = null;
+
+		// Hide every photo except the latest one, once its swap has fully covered them
+		const settle = () =>
+			photos.forEach((photo, i) => {
+				if (i !== current) gsap.set(photo, { opacity: 0, zIndex: 0, clearProps: 'clipPath' });
+				else photo.style.willChange = '';
+			});
+
+		section?.addEventListener('steps:change', (event) => {
+			const index = (event as CustomEvent<{ index: number }>).detail.index;
+			const incoming = photos[index];
+			if (!incoming || index === current) return;
+
+			// Freeze any swap in progress where it is: what's visible now becomes the backdrop for the new one
+			swap?.kill();
+			const previous = photos[current];
+			current = index;
+
+			photos.forEach((photo, i) => {
+				photo.setAttribute('aria-hidden', String(i !== index));
+				// Only two layers ever: the outgoing photo underneath, the incoming one on top
+				if (photo !== previous && photo !== incoming) gsap.set(photo, { zIndex: 0 });
+			});
+			gsap.set(previous, { zIndex: 1 });
+			gsap.set(incoming, { zIndex: 2, opacity: 1 });
+			incoming.removeAttribute('aria-hidden');
+
+			if (richMotion) {
+				incoming.style.willChange = 'clip-path';
+				swap = playImageReveal(incoming, incoming.querySelector('img'), 1.5, settle);
+			} else {
+				swap = gsap.fromTo(
+					incoming,
+					{ opacity: 0 },
+					{ opacity: 1, duration: reducedMotion ? 0 : 0.8, ease: 'power2.inOut', overwrite: true, onComplete: settle },
+				);
+			}
+		});
+	});
+</script>

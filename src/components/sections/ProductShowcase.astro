@@ -24,15 +24,16 @@ const { title, description, products, browseLink } = Astro.props;
 
 		<Carousel label={title}>
 			{
-				products.map((product) => (
-					<CarouselItem class="w-4/5 sm:w-141.5">
+				products.map((product, i) => (
+					// First card starts just before the subheading finishes (its fade eases in gently); the rest follow 0.2s apart
+					<CarouselItem class="w-4/5 sm:w-141.5" revealDelay={i === 0 ? 0.15 : 0.2}>
 						<ProductCard {...product} class="h-full" />
 					</CarouselItem>
 				))
 			}
 			{
 				browseLink && (
-					<a slot="aside" href={browseLink.href} class="text-body hover:underline">
+					<a slot="aside" href={browseLink.href} class="-my-2 py-2 text-body hover:underline">
 						{browseLink.label}
 					</a>
 				)

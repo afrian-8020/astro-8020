@@ -25,6 +25,9 @@ import wegovyImage from '../assets/products/wegovy.png';
 import zepboundImage from '../assets/products/zepbound.png';
 import metforminImage from '../assets/products/metformin.png';
 import howItWorksImage from '../assets/how-it-works.png';
+import stepTwoImage from '../assets/how-it-works/step-2.webp';
+import stepThreeImage from '../assets/how-it-works/step-3.jpg';
+import stepFourImage from '../assets/how-it-works/step-4.jpg';
 
 const productCtas = {
 	disclosure: { href: '#', label: 'See safety disclosures' },
@@ -120,14 +123,23 @@ const products = [
 			{
 				title: 'Connect with an expert clinician',
 				description: 'Meet a licensed clinician online who confirms whether medication is right for you',
+				image: stepTwoImage,
+				imageAlt: 'Smiling woman stretching both arms overhead against a blue sky',
+				imageFocus: '52% 40%',
 			},
 			{
 				title: 'Begin your treatment plan',
 				description: 'Get your medication delivered, plus daily lessons and coaching built around your goals',
+				image: stepThreeImage,
+				imageAlt: 'Woman doing a side stretch on the grass in a city park',
+				imageFocus: '55% 45%',
 			},
 			{
 				title: 'Ongoing care and medication',
 				description: 'Check in with your care team, adjust your dose, and get refills on schedule',
+				image: stepFourImage,
+				imageAlt: 'Smiling woman with her hands behind her head in a sunny park',
+				imageFocus: '45% 40%',
 			},
 		]}
 	/>
@@ -196,38 +208,46 @@ const products = [
 	<Faq
 		title="Frequently asked questions"
 		items={[
+			// Questions from noom.com/med; answers paraphrased from that page (facts kept, wording our own)
 			{
-				question: 'What’s included in Noom Med?',
+				question: 'What exactly is Noom Med and how does it work?',
 				open: true,
 				answer: [
-					'Noom Med combines weight-loss medication solutions with Noom’s psychological support to make long-term, transformational weight loss possible.',
-					'Noom Med comes with access to 1:1 messaging with expert weight-loss clinicians, prescriptions and medication (where clinically appropriate), a community of patients, ongoing medication management, and psychology-backed content and tools to make lasting behavior change.',
+					'Noom Med combines prescription weight-loss medication with Noom’s psychology-based approach to behavior change.',
+					'Licensed clinicians decide whether medication is right for you and manage it over time, while the Noom app and coaching help you build habits that keep the weight off.',
 				],
 			},
-			// TODO: the answers below are placeholder copy drawn from this page — replace with approved answers
 			{
-				question: 'Does Noom prescribe GLP-1s?',
-				answer: ['Yes. If a Noom clinician determines it’s clinically appropriate, they can prescribe GLP-1 medications as part of your treatment plan.'],
+				question: 'What weight loss medications does Noom Med offer?',
+				answer: [
+					'When clinically appropriate, Noom Med clinicians can prescribe GLP-1 medications such as Wegovy®, Zepbound® and Ozempic®, as well as oral options like metformin or the Wegovy® pill. Every prescription starts with a clinical evaluation.',
+				],
 			},
 			{
-				question: 'How much do GLP-1s cost with Noom?',
-				answer: ['Cost depends on your medication and whether you use insurance or pay cash. Your care team will review your options with you.'],
+				question: 'How much does weight loss medication cost with Noom?',
+				answer: [
+					'It depends on your plan and medication. The Noom Microdose GLP-1Rx Program starts at $79, with or without insurance. Plans for brand-name medications like Ozempic® and Zepbound® start at $39, plus whatever the medication costs you under your coverage.',
+					'Every plan includes full access to the Noom app, with psychology-based lessons, tracking tools and support.',
+				],
 			},
 			{
 				question: 'Do I need insurance to get weight-loss medications from Noom?',
-				answer: ['Noom Med works with insurance or cash pay. Availability of some medications and home delivery depends on your coverage.'],
+				answer: [
+					'No. Noom Med works with or without insurance. If you’re covered, Noom helps you get the most from your plan for medication and clinician visits; if you’re not, cash-pay options still give you access to clinicians and medication.',
+				],
 			},
 			{
-				question: 'How is Noom’s approach different?',
-				answer: ['Noom pairs medication with psychology-based coaching, a supportive community, and tools for lasting behavior change — not medication alone.'],
+				question: 'How much weight can I expect to lose with Noom Med?',
+				answer: [
+					'Results depend on your medication, your health history and how consistently you follow the program. On average, Noom Med members lose 48% more weight in six months than people taking GLP-1 medications without Noom.‡',
+				],
 			},
 			{
-				question: 'What types of oral medications does Noom offer?',
-				answer: ['Oral options such as metformin may be prescribed when clinically appropriate. Metformin is not FDA-approved for weight loss.'],
-			},
-			{
-				question: 'How much do oral medications cost with Noom?',
-				answer: ['Pricing varies by medication and by insurance or cash pay status.'],
+				question: 'How do I get started with Noom Med?',
+				answer: [
+					'Take a short online health assessment about your goals and medical history, then meet a clinician who’ll decide whether medication is right for you.',
+					'If you’re prescribed one, it’s sent to your pharmacy or shipped to your door — and the Noom app gives you tools, coaching and ongoing support along the way.',
+				],
 			},
 		]}
 		footnotes={[

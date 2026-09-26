@@ -20,7 +20,7 @@ const panelId = `${id}-panel`;
 	data-step
 	data-active={active ? '' : undefined}
 >
-	<!-- Progress bar over the top line: full on the open step without JS; StepList animates it as a timer -->
+	{/* Progress bar over the top line: full on the open step without JS; StepList animates it as a timer */}
 	<span
 		class="pointer-events-none absolute inset-x-0 -top-px h-px origin-left bg-ink"
 		style={active ? undefined : 'transform: scaleX(0)'}
@@ -37,7 +37,7 @@ const panelId = `${id}-panel`;
 			data-step-trigger
 		>
 			<StepNumber value={number} aria-hidden="true" />
-			<!-- 4px top padding centers a one-line title on the 32px number; it eases away when the step opens -->
+			{/* 4px top padding centers a one-line title on the 32px number; it eases away when the step opens */}
 			<span class="flex-1 pt-1 transition-[padding] duration-500 group-data-active:pt-0">{title}</span>
 		</button>
 	</h3>

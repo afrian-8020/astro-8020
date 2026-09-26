@@ -1,11 +1,17 @@
 ---
 interface Props {
+	/** Seconds after the previous revealed element to fade in (joins its section's reveal; desktop only) */
+	revealDelay?: number;
 	class?: string;
 }
 
-const { class: className } = Astro.props;
+const { revealDelay, class: className } = Astro.props;
 ---
 
-<li class:list={['shrink-0 snap-start', className]}>
+<li
+	class:list={['shrink-0 snap-start', className]}
+	data-reveal={revealDelay !== undefined ? 'card' : undefined}
+	data-reveal-delay={revealDelay}
+>
 	<slot />
 </li>
