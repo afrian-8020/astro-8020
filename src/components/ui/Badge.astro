@@ -1,11 +1,12 @@
 ---
-interface Props {
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'span'> {
 	/** outline: bordered label with optional icon · neutral / success: filled uppercase tag */
 	variant?: 'outline' | 'neutral' | 'success';
-	class?: string;
 }
 
-const { variant = 'outline', class: className } = Astro.props;
+const { variant = 'outline', class: className, ...attrs } = Astro.props;
 
 const variants = {
 	outline: 'gap-2 rounded-md border border-border-strong px-2 py-0.75 text-body-xs text-ink',
@@ -14,7 +15,7 @@ const variants = {
 };
 ---
 
-<span class:list={['inline-flex items-center whitespace-nowrap', variants[variant], className]}>
+<span class:list={['inline-flex items-center whitespace-nowrap', variants[variant], className]} {...attrs}>
 	<slot name="icon" />
 	<slot />
 </span>

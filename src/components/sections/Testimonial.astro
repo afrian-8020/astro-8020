@@ -1,20 +1,21 @@
 ---
+import type { ComponentProps, HTMLAttributes } from 'astro/types';
 import SanityImage from '../ui/SanityImage.astro';
 import type { SanityImageSource } from '../../sanity/image';
-import type { ComponentProps } from 'astro/types';
 import Container from '../ui/Container.astro';
 import TestimonialCard from '../patterns/TestimonialCard.astro';
 
-interface Props {
+interface Props extends HTMLAttributes<'section'> {
 	background: SanityImageSource;
-	testimonial: Omit<ComponentProps<typeof TestimonialCard>, 'class'>;
+	testimonial: Omit<ComponentProps<typeof TestimonialCard>, 'class' | 'reveal'>;
 }
 
-const { background, testimonial } = Astro.props;
+const { background, testimonial, class: className, ...attrs } = Astro.props;
 ---
 
 {/* A single testimonial card over a fixed full-bleed photo */}
-<section class="relative isolate overflow-hidden bg-surface-muted py-20 lg:py-50">
+{/* Animation: the card's portrait reveal, text fade-in and count-up (see TestimonialCard's `reveal`) */}
+<section class:list={['relative isolate overflow-hidden bg-surface-muted py-20 lg:py-50', className]} {...attrs}>
 	{/*
 		Fixed backdrop (desktop): the photo is pinned to the viewport and the section scrolls over it like a window.
 		Below lg it's a regular cover image.
@@ -34,7 +35,7 @@ const { background, testimonial } = Astro.props;
 
 	<Container>
 		<div class="mx-auto max-w-289">
-			<TestimonialCard {...testimonial} />
+			<TestimonialCard {...testimonial} reveal />
 		</div>
 	</Container>
 </section>

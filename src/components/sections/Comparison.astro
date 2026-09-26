@@ -1,31 +1,30 @@
 ---
-import type { ComponentProps } from 'astro/types';
+import type { ComponentProps, HTMLAttributes } from 'astro/types';
 import Container from '../ui/Container.astro';
 import ComparisonTable from '../patterns/ComparisonTable.astro';
 import InlineCta from '../patterns/InlineCta.astro';
+import SectionHeader from '../patterns/SectionHeader.astro';
 
 type TableProps = ComponentProps<typeof ComparisonTable>;
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'title'> {
 	title: string;
 	description?: string;
 	columns: TableProps['columns'];
 	rows: TableProps['rows'];
-	cta?: ComponentProps<typeof InlineCta>;
+	cta?: Omit<ComponentProps<typeof InlineCta>, 'reveal'>;
 }
 
-const { title, description, columns, rows, cta } = Astro.props;
+const { title, description, columns, rows, cta, class: className, ...attrs } = Astro.props;
 ---
 
-<section class="bg-surface pt-10 pb-20 text-ink lg:pb-30">
+{/* Fade-in order: title → description → table rows in quick succession → closing line and button */}
+<section class:list={['bg-surface pt-10 pb-20 text-ink lg:pb-30', className]} {...attrs}>
 	<Container class="flex flex-col gap-14">
-		<header class="flex max-w-169 flex-col gap-8">
-			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
-			{description && <p class="max-w-138.75 text-body" data-reveal>{description}</p>}
-		</header>
+		<SectionHeader title={title} description={description} class="max-w-169" descriptionClass="max-w-138.75" reveal />
 
-		<ComparisonTable caption={title} columns={columns} rows={rows} />
+		<ComparisonTable caption={title} columns={columns} rows={rows} reveal={{ delay: 0.08 }} />
 
-		{cta && <InlineCta {...cta} />}
+		{cta && <InlineCta {...cta} reveal />}
 	</Container>
 </section>

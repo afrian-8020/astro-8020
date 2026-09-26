@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import Logo from '../../assets/logo.svg';
 import Facebook from '../../assets/icons/facebook.svg';
 import Instagram from '../../assets/icons/instagram.svg';
@@ -6,52 +7,33 @@ import X from '../../assets/icons/x.svg';
 import LinkedIn from '../../assets/icons/linkedin.svg';
 import Container from '../ui/Container.astro';
 import FooterColumn from '../patterns/FooterColumn.astro';
+import type { Link } from '../../lib/types';
 
-type Link = { href: string; label: string };
+// The platforms an editor can pick in Site Settings, with their icon and accessible name
+const platforms = {
+	facebook: { label: 'Facebook', icon: Facebook },
+	instagram: { label: 'Instagram', icon: Instagram },
+	x: { label: 'X', icon: X },
+	linkedin: { label: 'LinkedIn', icon: LinkedIn },
+};
 
-interface Props {
-	columns?: { title: string; links: Link[] }[];
-	legalLinks?: Link[];
-	copyright?: string;
+// Content comes from Site Settings in Sanity (fetched in BaseLayout)
+interface Props extends HTMLAttributes<'footer'> {
+	columns: { title: string; links: Link[] }[];
+	legalLinks: Link[];
+	socials: { platform: keyof typeof platforms; href: string }[];
+	/** "{year}" is replaced with the current year */
+	copyright: string;
 }
 
-const links = (...labels: string[]): Link[] => labels.map((label) => ({ href: '#', label }));
-
-const {
-	columns = [
-		{ title: 'For individuals', links: links('Noom Med', 'Lose weight', 'Relieve stress', 'Calorie calculator', 'Macro calculator') },
-		{ title: 'For organizations', links: links('Employers', 'Health plans', 'Health systems', 'Resources') },
-		{ title: 'Company', links: links('About us', 'Careers', 'Research', 'Press', 'Blog') },
-		{ title: 'Resources', links: links('Support', 'GLP-1 Access & Transparency', 'HRT safety', 'Brand ambassadors') },
-		{ title: 'Languages', links: links('English', 'German', 'Spanish', 'Korean') },
-	],
-	legalLinks = links(
-		'Legal',
-		'Cookie policy',
-		'Terms and conditions',
-		'Candidate privacy policy',
-		'Privacy policy',
-		'HIPAA notice',
-		'Accessibility',
-		'Consumer health data privacy notice',
-		'Your privacy choices',
-	),
-	copyright = `Copyright © ${new Date().getFullYear()} Noom, Inc. All Rights Reserved.`,
-} = Astro.props;
-
-const socials = [
-	{ href: '#', label: 'Facebook', icon: Facebook },
-	{ href: '#', label: 'Instagram', icon: Instagram },
-	{ href: '#', label: 'X', icon: X },
-	{ href: '#', label: 'LinkedIn', icon: LinkedIn },
-];
+const { columns, legalLinks, socials, copyright, class: className, ...attrs } = Astro.props;
 ---
 
 {/*
 	Desktop reveal (global.css, "Footer reveal"): as the footer scrolls in, its content moves at half speed inside
 	the clipped box, starting shifted up by half its height — so it emerges from its middle as the page slides away.
 */}
-<footer class="theme-dark bg-surface text-ink" data-footer-reveal>
+<footer class:list={['theme-dark bg-surface text-ink', className]} data-footer-reveal {...attrs}>
 	<Container class="flex flex-col gap-14 py-20 lg:flex-row lg:justify-between" data-footer-reveal-content>
 		<a href={import.meta.env.BASE_URL} aria-label="Home" class="shrink-0 self-start" data-logo-reveal>
 			<Logo class="h-5 w-auto" aria-hidden="true" />
@@ -80,16 +62,19 @@ const socials = [
 				<div class="flex flex-col gap-6">
 					<ul class="flex items-center gap-6">
 						{
-							socials.map(({ href, label, icon: Icon }) => (
-								<li>
-									<a href={href} aria-label={label} class="block opacity-60 transition-opacity hover:opacity-100">
-										<Icon class="size-5" aria-hidden="true" />
-									</a>
-								</li>
-							))
+							socials.map(({ platform, href }) => {
+								const { label, icon: Icon } = platforms[platform];
+								return (
+									<li>
+										<a href={href} aria-label={label} class="block opacity-60 transition-opacity hover:opacity-100">
+											<Icon class="size-5" aria-hidden="true" />
+										</a>
+									</li>
+								);
+							})
 						}
 					</ul>
-					<p class="text-body-xs text-ink-muted">{copyright}</p>
+					<p class="text-body-xs text-ink-muted">{copyright.replaceAll('{year}', String(new Date().getFullYear()))}</p>
 				</div>
 			</div>
 		</div>

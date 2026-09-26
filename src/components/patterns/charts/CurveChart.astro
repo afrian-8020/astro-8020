@@ -63,11 +63,8 @@ const highlightClip = `curve-highlight-${uid}`;
 
 <script>
 	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
-	import { replayOnHover } from '../../../scripts/chart-hover';
+	import { playChart } from '../../../scripts/chart-motion';
 	import { richMotion } from '../../../scripts/motion';
-
-	gsap.registerPlugin(ScrollTrigger);
 
 	// Desktop only (see motion.ts) — elsewhere the chart shows in its final state
 	if (richMotion) {
@@ -104,8 +101,7 @@ const highlightClip = `curve-highlight-${uid}`;
 				.to(dot.highlight, POP, 1.15)
 				.to(label.highlight, FADE, 1.1);
 
-			ScrollTrigger.create({ trigger: svg, start: '20% bottom', once: true, onEnter: () => tl.play() });
-			replayOnHover(svg, tl);
+			playChart(svg, tl);
 		});
 	}
 </script>

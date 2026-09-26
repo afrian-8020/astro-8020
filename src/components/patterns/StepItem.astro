@@ -1,7 +1,8 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import StepNumber from '../ui/StepNumber.astro';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'li'>, 'id' | 'title'> {
 	/** Unique id used to link the trigger to its panel */
 	id: string;
 	number: number;
@@ -11,14 +12,18 @@ interface Props {
 	active?: boolean;
 }
 
-const { id, number, title, description, active = false } = Astro.props;
+const { id, number, title, description, active = false, class: className, ...attrs } = Astro.props;
 const panelId = `${id}-panel`;
 ---
 
 <li
-	class="group relative border-t border-border-strong pt-3.75 text-ink opacity-40 transition-opacity duration-500 not-data-active:hover:opacity-60 data-active:opacity-100 lg:pr-40"
+	class:list={[
+		'group relative border-t border-border-strong pt-3.75 text-ink opacity-40 transition-opacity duration-500 not-data-active:hover:opacity-60 data-active:opacity-100 lg:pr-40',
+		className,
+	]}
 	data-step
 	data-active={active ? '' : undefined}
+	{...attrs}
 >
 	{/* Progress bar over the top line: full on the open step without JS; StepList animates it as a timer */}
 	<span

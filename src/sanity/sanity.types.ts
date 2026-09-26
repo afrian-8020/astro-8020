@@ -90,6 +90,48 @@ export type Product = {
   secondaryCta?: Link;
 };
 
+export type SiteSettings = {
+  _id: string;
+  _type: "siteSettings";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  navigation?: {
+    links?: Array<{
+      label?: string;
+      href?: string;
+      hasMenu?: boolean;
+      _type: "navLink";
+      _key: string;
+    }>;
+    cta?: Link;
+  };
+  footer?: {
+    columns?: Array<{
+      title?: string;
+      links?: Array<
+        {
+          _key: string;
+        } & Link
+      >;
+      _type: "footerColumn";
+      _key: string;
+    }>;
+    legalLinks?: Array<
+      {
+        _key: string;
+      } & Link
+    >;
+    socialLinks?: Array<{
+      platform?: "facebook" | "instagram" | "x" | "linkedin";
+      href?: string;
+      _type: "socialLink";
+      _key: string;
+    }>;
+    copyright?: string;
+  };
+};
+
 export type ProductReference = {
   _ref: string;
   _type: "reference";
@@ -375,6 +417,7 @@ export type AllSanitySchemaTypes =
   | SanityImageCrop
   | SanityImageHotspot
   | Product
+  | SiteSettings
   | ProductReference
   | TestimonialReference
   | ArticleReference
@@ -390,7 +433,7 @@ export type AllSanitySchemaTypes =
   | Geopoint
   | Slug;
 
-// Source: ../astro-8020/.claude/worktrees/interesting-brattain-dabf5c/src/sanity/queries.ts
+// Source: ../astro-8020/src/sanity/queries.ts
 // Variable: HOME_PAGE_QUERY
 // Query: *[_id == "homePage"][0]{	hero {		badge, heading, description,		cta { label, href },		image {	"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },	alt,	hotspot { x, y }},		benefits[] { _key, title, description }	},	productShowcase {		heading, description,		browseLink { label, href },		products[]->{			_id, name, registered,			tags[] { _key, label, kind },			image {	"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },	alt,	hotspot { x, y }},			disclosure { label, href },			primaryCta { label, href },			secondaryCta { label, href }		}	},	comparison {		heading, description, alternativeLabel,		features[] { _key, feature, includedWithNoom, includedWithAlternative },		ctaText,		cta { label, href }	},	howItWorks {		eyebrow, heading,		steps[] { _key, title, description, image {	"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },	alt,	hotspot { x, y }} }	},	science {		heading, description,		stats[] { _key, caption, chart, figure, figureLabel, baselineLabel, highlightLabel }	},	testimonialSection {		background {	"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },	alt,	hotspot { x, y }},		testimonial->{ author, quote, portrait {	"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },	alt,	hotspot { x, y }}, result { value, label, countFrom } }	},	articlesSection {		heading, description,		moreLink { label, href },		articles[]->{ _id, title, url, publishedAt, image {	"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },	alt,	hotspot { x, y }} }	},	callToAction {		heading, description,		cta { label, href },		image {	"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },	alt,	hotspot { x, y }}	},	faq {		heading,		questions[] { _key, question, answer },		footnotes	},	seo { title, description }}
 export type HOME_PAGE_QUERY_RESULT =
@@ -636,10 +679,57 @@ export type HOME_PAGE_QUERY_RESULT =
     }
   | null;
 
+// Source: ../astro-8020/src/sanity/queries.ts
+// Variable: SITE_SETTINGS_QUERY
+// Query: *[_id == "siteSettings"][0]{	navigation {		links[] { _key, label, href, hasMenu },		cta { label, href }	},	footer {		columns[] { _key, title, links[] { _key, label, href } },		legalLinks[] { _key, label, href },		socialLinks[] { _key, platform, href },		copyright	}}
+export type SITE_SETTINGS_QUERY_RESULT =
+  | {
+      navigation: null;
+      footer: null;
+    }
+  | {
+      navigation: {
+        links: Array<{
+          _key: string;
+          label: string | null;
+          href: string | null;
+          hasMenu: boolean | null;
+        }> | null;
+        cta: {
+          label: string | null;
+          href: string | null;
+        } | null;
+      } | null;
+      footer: {
+        columns: Array<{
+          _key: string;
+          title: string | null;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            href: string | null;
+          }> | null;
+        }> | null;
+        legalLinks: Array<{
+          _key: string;
+          label: string | null;
+          href: string | null;
+        }> | null;
+        socialLinks: Array<{
+          _key: string;
+          platform: "facebook" | "instagram" | "linkedin" | "x" | null;
+          href: string | null;
+        }> | null;
+        copyright: string | null;
+      } | null;
+    }
+  | null;
+
 // Query TypeMap
 declare global {
   interface SanityQueries {
     '*[_id == "homePage"][0]{\n\thero {\n\t\tbadge, heading, description,\n\t\tcta { label, href },\n\t\timage {\n\t"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },\n\talt,\n\thotspot { x, y }\n},\n\t\tbenefits[] { _key, title, description }\n\t},\n\tproductShowcase {\n\t\theading, description,\n\t\tbrowseLink { label, href },\n\t\tproducts[]->{\n\t\t\t_id, name, registered,\n\t\t\ttags[] { _key, label, kind },\n\t\t\timage {\n\t"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },\n\talt,\n\thotspot { x, y }\n},\n\t\t\tdisclosure { label, href },\n\t\t\tprimaryCta { label, href },\n\t\t\tsecondaryCta { label, href }\n\t\t}\n\t},\n\tcomparison {\n\t\theading, description, alternativeLabel,\n\t\tfeatures[] { _key, feature, includedWithNoom, includedWithAlternative },\n\t\tctaText,\n\t\tcta { label, href }\n\t},\n\thowItWorks {\n\t\teyebrow, heading,\n\t\tsteps[] { _key, title, description, image {\n\t"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },\n\talt,\n\thotspot { x, y }\n} }\n\t},\n\tscience {\n\t\theading, description,\n\t\tstats[] { _key, caption, chart, figure, figureLabel, baselineLabel, highlightLabel }\n\t},\n\ttestimonialSection {\n\t\tbackground {\n\t"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },\n\talt,\n\thotspot { x, y }\n},\n\t\ttestimonial->{ author, quote, portrait {\n\t"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },\n\talt,\n\thotspot { x, y }\n}, result { value, label, countFrom } }\n\t},\n\tarticlesSection {\n\t\theading, description,\n\t\tmoreLink { label, href },\n\t\tarticles[]->{ _id, title, url, publishedAt, image {\n\t"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },\n\talt,\n\thotspot { x, y }\n} }\n\t},\n\tcallToAction {\n\t\theading, description,\n\t\tcta { label, href },\n\t\timage {\n\t"asset": asset->{ _id, url, "width": metadata.dimensions.width, "height": metadata.dimensions.height, "lqip": metadata.lqip },\n\talt,\n\thotspot { x, y }\n}\n\t},\n\tfaq {\n\t\theading,\n\t\tquestions[] { _key, question, answer },\n\t\tfootnotes\n\t},\n\tseo { title, description }\n}': HOME_PAGE_QUERY_RESULT;
+    '*[_id == "siteSettings"][0]{\n\tnavigation {\n\t\tlinks[] { _key, label, href, hasMenu },\n\t\tcta { label, href }\n\t},\n\tfooter {\n\t\tcolumns[] { _key, title, links[] { _key, label, href } },\n\t\tlegalLinks[] { _key, label, href },\n\t\tsocialLinks[] { _key, platform, href },\n\t\tcopyright\n\t}\n}': SITE_SETTINGS_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

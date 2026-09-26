@@ -1,32 +1,32 @@
 ---
-import type { ComponentProps } from 'astro/types';
+import type { ComponentProps, HTMLAttributes } from 'astro/types';
 import Container from '../ui/Container.astro';
 import Carousel from '../patterns/Carousel.astro';
 import CarouselItem from '../patterns/CarouselItem.astro';
 import ProductCard from '../patterns/ProductCard.astro';
+import SectionHeader from '../patterns/SectionHeader.astro';
+import type { Link } from '../../lib/types';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'title'> {
 	title: string;
 	description?: string;
 	products: ComponentProps<typeof ProductCard>[];
-	browseLink?: { href: string; label: string };
+	browseLink?: Link;
 }
 
-const { title, description, products, browseLink } = Astro.props;
+const { title, description, products, browseLink, class: className, ...attrs } = Astro.props;
 ---
 
-<section class="overflow-x-clip bg-surface py-20 text-ink lg:py-30">
+{/* Fade-in order: title → description → product cards one by one (cards on desktop only) */}
+<section class:list={['overflow-x-clip bg-surface py-20 text-ink lg:py-30', className]} {...attrs}>
 	<Container class="flex flex-col gap-10">
-		<header class="mx-auto flex max-w-169 flex-col items-center gap-8 text-center">
-			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
-			{description && <p class="max-w-112 text-body" data-reveal>{description}</p>}
-		</header>
+		<SectionHeader title={title} description={description} align="center" class="mx-auto max-w-169" descriptionClass="max-w-112" reveal />
 
 		<Carousel label={title}>
 			{
 				products.map((product, i) => (
 					// First card starts just before the subheading finishes (its fade eases in gently); the rest follow 0.2s apart
-					<CarouselItem class="w-4/5 sm:w-141.5" revealDelay={i === 0 ? 0.15 : 0.2}>
+					<CarouselItem class="w-4/5 sm:w-141.5" reveal={{ delay: i === 0 ? 0.15 : 0.2 }}>
 						<ProductCard {...product} class="h-full" />
 					</CarouselItem>
 				))

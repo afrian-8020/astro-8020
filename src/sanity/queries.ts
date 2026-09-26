@@ -63,3 +63,17 @@ export const HOME_PAGE_QUERY = defineQuery(`*[_id == "homePage"][0]{
 	},
 	seo { title, description }
 }`);
+
+// Navigation bar and footer, shared by every page
+export const SITE_SETTINGS_QUERY = defineQuery(`*[_id == "siteSettings"][0]{
+	navigation {
+		links[] { _key, label, href, hasMenu },
+		cta ${LINK_FIELDS}
+	},
+	footer {
+		columns[] { _key, title, links[] { _key, label, href } },
+		legalLinks[] { _key, label, href },
+		socialLinks[] { _key, platform, href },
+		copyright
+	}
+}`);

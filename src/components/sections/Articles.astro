@@ -1,31 +1,32 @@
 ---
-import type { ComponentProps } from 'astro/types';
+import type { ComponentProps, HTMLAttributes } from 'astro/types';
 import Container from '../ui/Container.astro';
 import ArticleCard from '../patterns/ArticleCard.astro';
+import SectionHeader from '../patterns/SectionHeader.astro';
+import type { Link } from '../../lib/types';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'title'> {
 	title: string;
 	description?: string;
-	moreLink?: { href: string; label: string };
+	moreLink?: Link;
 	articles: Omit<ComponentProps<typeof ArticleCard>, 'class'>[];
 }
 
-const { title, description, moreLink, articles } = Astro.props;
+const { title, description, moreLink, articles, class: className, ...attrs } = Astro.props;
 ---
 
-<section class="bg-surface py-20 text-ink lg:py-30">
+{/* Fade-in order: title → description → "more" link */}
+<section class:list={['bg-surface py-20 text-ink lg:py-30', className]} {...attrs}>
 	<Container class="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
-		<header class="flex max-w-111.75 flex-col items-start gap-8">
-			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
-			{description && <p class="text-body" data-reveal>{description}</p>}
+		<SectionHeader title={title} description={description} class="max-w-111.75" reveal>
 			{
 				moreLink && (
-					<a href={moreLink.href} class="-my-2 py-2 text-body hover:underline" data-reveal>
+					<a href={moreLink.href} class="-my-2 self-start py-2 text-body hover:underline" data-reveal>
 						{moreLink.label}
 					</a>
 				)
 			}
-		</header>
+		</SectionHeader>
 
 		<ul class="flex flex-col gap-4 lg:w-171">
 			{

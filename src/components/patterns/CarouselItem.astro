@@ -1,17 +1,15 @@
 ---
-interface Props {
-	/** Seconds after the previous revealed element to fade in (joins its section's reveal; desktop only) */
-	revealDelay?: number;
-	class?: string;
+import type { HTMLAttributes } from 'astro/types';
+import { revealAttrs, type Reveal } from '../../lib/reveal';
+
+interface Props extends HTMLAttributes<'li'> {
+	/** Fade the whole item in with its section's text (desktop only; src/lib/reveal.ts) */
+	reveal?: Reveal;
 }
 
-const { revealDelay, class: className } = Astro.props;
+const { reveal, class: className, ...attrs } = Astro.props;
 ---
 
-<li
-	class:list={['shrink-0 snap-start', className]}
-	data-reveal={revealDelay !== undefined ? 'card' : undefined}
-	data-reveal-delay={revealDelay}
->
+<li class:list={['shrink-0 snap-start', className]} {...revealAttrs(reveal, 'card')} {...attrs}>
 	<slot />
 </li>

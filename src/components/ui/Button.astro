@@ -1,17 +1,21 @@
 ---
-interface Props {
+import type { HTMLAttributes } from 'astro/types';
+import { revealAttrs, type Reveal } from '../../lib/reveal';
+
+// Renders a link when given `href`, otherwise a <button>; either element's attributes are accepted
+type Attributes = Omit<HTMLAttributes<'a'>, 'type'> & Omit<HTMLAttributes<'button'>, 'type'>;
+
+interface Props extends Attributes {
 	href?: string;
 	/** primary: filled coral · secondary: filled teal · tertiary: outlined */
 	variant?: 'primary' | 'secondary' | 'tertiary';
 	size?: 'sm' | 'md';
 	type?: 'button' | 'submit' | 'reset';
-	/** Fade in as part of its section's text reveal sequence (see src/scripts/reveal.ts) */
-	reveal?: boolean;
-	class?: string;
+	/** Fade in with its section's text (src/lib/reveal.ts) */
+	reveal?: Reveal;
 }
 
-const { href, variant = 'primary', size = 'md', type = 'button', reveal = false, class: className } = Astro.props;
-const revealAttr = reveal ? 'block' : undefined;
+const { href, variant = 'primary', size = 'md', type = 'button', reveal, class: className, ...attrs } = Astro.props;
 
 // Every variant carries a 1px border (transparent when filled) so all variants share the same size
 const variants = {
@@ -36,11 +40,11 @@ const classes = [
 
 {
 	href ? (
-		<a href={href} class:list={classes} data-reveal={revealAttr}>
+		<a href={href} class:list={classes} {...revealAttrs(reveal, 'block')} {...attrs}>
 			<slot />
 		</a>
 	) : (
-		<button type={type} class:list={classes} data-reveal={revealAttr}>
+		<button type={type} class:list={classes} {...revealAttrs(reveal, 'block')} {...attrs}>
 			<slot />
 		</button>
 	)

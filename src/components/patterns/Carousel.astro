@@ -1,26 +1,25 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import ChevronLeft from '../../assets/icons/chevron-left.svg';
 import IconButton from '../ui/IconButton.astro';
 
-interface Props {
+interface Props extends HTMLAttributes<'div'> {
 	/** Accessible name for the carousel region */
 	label: string;
-	class?: string;
 }
 
-const { label, class: className } = Astro.props;
+const { label, class: className, ...attrs } = Astro.props;
 ---
 
 {/*
 	Horizontal scroll-snap carousel. Pass items with <CarouselItem>.
-	The track bleeds to the viewport edges at any width; --bleed = gutter, or the space beside max-w-content on wide screens,
-	so items still snap to the container edge.
+	The track bleeds to the viewport edges at any width (--page-inset, global.css), so items still snap to the container edge.
 	Wrap in an element with overflow-x-clip to absorb scrollbar-width rounding on Windows.
 	Optional `aside` slot renders at the end of the controls row (e.g. a "view all" link).
 */}
-<div class:list={['flex flex-col gap-10', className]} role="region" aria-roledescription="carousel" aria-label={label} data-carousel>
+<div class:list={['flex flex-col gap-10', className]} role="region" aria-roledescription="carousel" aria-label={label} data-carousel {...attrs}>
 	<ul
-		class="scrollbar-none relative flex snap-x snap-mandatory gap-4 overflow-x-auto [--bleed:max(--spacing(4),calc((100vw-var(--container-content))/2))] sm:[--bleed:max(--spacing(6),calc((100vw-var(--container-content))/2))] -mx-(--bleed) px-(--bleed) scroll-px-(--bleed)"
+		class="scrollbar-none relative flex snap-x snap-mandatory gap-4 overflow-x-auto -mx-(--page-inset) px-(--page-inset) scroll-px-(--page-inset)"
 		data-carousel-track
 	>
 		<slot />
@@ -42,10 +41,9 @@ const { label, class: className } = Astro.props;
 <script>
 	import { gsap } from 'gsap';
 	import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+	import { reducedMotion } from '../../scripts/motion';
 
 	gsap.registerPlugin(ScrollToPlugin);
-
-	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 	document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((carousel) => {
 		const track = carousel.querySelector<HTMLElement>('[data-carousel-track]');
@@ -84,7 +82,7 @@ const { label, class: className } = Astro.props;
 			const restoreSnap = () => (track.style.scrollSnapType = '');
 			tween = gsap.to(track, {
 				scrollTo: { x: target, autoKill: true },
-				duration: reduceMotion.matches ? 0 : 0.65,
+				duration: reducedMotion ? 0 : 0.65,
 				ease: 'power2.inOut',
 				onComplete: restoreSnap,
 				onInterrupt: restoreSnap,

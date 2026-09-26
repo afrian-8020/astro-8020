@@ -1,21 +1,21 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import Container from '../ui/Container.astro';
+import SectionHeader from '../patterns/SectionHeader.astro';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'title'> {
 	title: string;
 	description?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, class: className, ...attrs } = Astro.props;
 ---
 
-{/* Pass <StatCard> items in the default slot */}
-<section class="bg-surface py-20 text-ink lg:py-30">
+{/* Pass <StatCard reveal> items in the default slot */}
+{/* Fade-in order: title → description → each card's caption (the charts animate themselves) */}
+<section class:list={['bg-surface py-20 text-ink lg:py-30', className]} {...attrs}>
 	<Container class="flex flex-col gap-14 lg:gap-20">
-		<header class="mx-auto flex max-w-169 flex-col items-center gap-8 text-center">
-			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
-			{description && <p class="max-w-155 text-body" data-reveal>{description}</p>}
-		</header>
+		<SectionHeader title={title} description={description} align="center" class="mx-auto max-w-169" descriptionClass="max-w-155" reveal />
 
 		{/* group/stats: hovering one card dims the others (see StatCard) */}
 		<div class="group/stats mx-auto grid w-full max-w-112 gap-6 lg:max-w-none lg:grid-cols-3">

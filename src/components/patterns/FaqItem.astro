@@ -1,7 +1,8 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import ChevronDown from '../../assets/icons/chevron-down-lg.svg';
 
-interface Props {
+interface Props extends HTMLAttributes<'details'> {
 	question: string;
 	/** One string per paragraph */
 	answer: string[];
@@ -10,16 +11,20 @@ interface Props {
 	group?: string;
 }
 
-const { question, answer, open = false, group } = Astro.props;
+const { question, answer, open = false, group, class: className, ...attrs } = Astro.props;
 ---
 
 <details
-	class="group border-t border-surface-inverse/10 text-ink transition-colors duration-500 data-expanded:border-surface-inverse [&::-webkit-details-marker]:hidden"
+	class:list={[
+		'group border-t border-surface-inverse/10 text-ink transition-colors duration-500 data-expanded:border-surface-inverse [&::-webkit-details-marker]:hidden',
+		className,
+	]}
 	name={group}
 	open={open}
 	data-faq
 	data-faq-group={group}
 	data-expanded={open ? '' : undefined}
+	{...attrs}
 >
 	<summary
 		class="flex cursor-pointer list-none items-center justify-between gap-10 pt-4 text-body focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current [&::-webkit-details-marker]:hidden"
@@ -36,9 +41,7 @@ const { question, answer, open = false, group } = Astro.props;
 
 <script>
 	import { gsap } from 'gsap';
-
-	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-	const EXPAND = { duration: reduceMotion ? 0 : 0.5, ease: 'power2.inOut' };
+	import { ACCORDION, collapsePanel, expandPanel } from '../../scripts/accordion';
 
 	const items = [...document.querySelectorAll<HTMLDetailsElement>('[data-faq]')];
 
@@ -51,15 +54,15 @@ const { question, answer, open = false, group } = Astro.props;
 		const { panel, chevron } = parts(item);
 		item.open = true;
 		item.setAttribute('data-expanded', '');
-		gsap.fromTo(panel, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, ...EXPAND, overwrite: true });
-		gsap.to(chevron, { rotation: 180, ...EXPAND, overwrite: true });
+		expandPanel(panel);
+		gsap.to(chevron, { rotation: 180, ...ACCORDION, overwrite: true });
 	};
 
 	const collapse = (item: HTMLDetailsElement) => {
 		const { panel, chevron } = parts(item);
 		item.removeAttribute('data-expanded');
-		gsap.to(panel, { height: 0, opacity: 0, ...EXPAND, overwrite: true, onComplete: () => (item.open = false) });
-		gsap.to(chevron, { rotation: 0, ...EXPAND, overwrite: true });
+		collapsePanel(panel, () => (item.open = false));
+		gsap.to(chevron, { rotation: 0, ...ACCORDION, overwrite: true });
 	};
 
 	items.forEach((item) => {

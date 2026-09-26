@@ -2,13 +2,24 @@
 import '../styles/global.css';
 import Navbar from '../components/layout/Navbar.astro';
 import Footer from '../components/layout/Footer.astro';
+import { sanityClient } from '../sanity/client';
+import { SITE_SETTINGS_QUERY } from '../sanity/queries';
+import { link, need } from '../sanity/content';
 
 interface Props {
 	title: string;
 	description?: string;
+	/** The navigation bar starts transparent over the page's first section (a full-bleed hero), see Navbar */
+	navOverlay?: boolean;
 }
 
-const { title, description = 'Built with Astro' } = Astro.props;
+const { title, description = 'Built with Astro', navOverlay = false } = Astro.props;
+
+// Navigation bar and footer content: the Site Settings document in Sanity
+const settings = need(await sanityClient.fetch(SITE_SETTINGS_QUERY), 'Site Settings (the published document)');
+const navigation = need(settings.navigation, 'Site Settings → Navigation bar');
+const footer = need(settings.footer, 'Site Settings → Footer');
+const links = (items: { label: string | null; href: string | null }[] | null) => (items ?? []).map(link).filter((item) => item !== undefined);
 ---
 
 <!doctype html>
@@ -30,11 +41,23 @@ const { title, description = 'Built with Astro' } = Astro.props;
 		</script>
 	</head>
 	<body class="flex min-h-dvh flex-col">
-		<slot name="header"><Navbar /></slot>
+		<Navbar
+			overlay={navOverlay}
+			links={(navigation.links ?? []).flatMap((item) => {
+				const navLink = link(item);
+				return navLink ? [{ ...navLink, hasMenu: item.hasMenu ?? false }] : [];
+			})}
+			cta={need(link(navigation.cta), 'Site Settings → Navigation bar → Button')}
+		/>
 		<main class="relative z-10 flex-1 bg-surface">
 			<slot />
 		</main>
-		<Footer />
+		<Footer
+			columns={(footer.columns ?? []).map((column) => ({ title: need(column.title, 'Site Settings → footer column title'), links: links(column.links) }))}
+			legalLinks={links(footer.legalLinks)}
+			socials={(footer.socialLinks ?? []).flatMap(({ platform, href }) => (platform && href ? [{ platform, href }] : []))}
+			copyright={need(footer.copyright, 'Site Settings → Footer → Copyright')}
+		/>
 		<script>
 			import '../scripts/smooth-scroll';
 			import '../scripts/reveal';

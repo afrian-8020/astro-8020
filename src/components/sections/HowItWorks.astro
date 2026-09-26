@@ -1,6 +1,7 @@
 ---
-import type { ComponentProps } from 'astro/types';
+import type { ComponentProps, HTMLAttributes } from 'astro/types';
 import StepList from '../patterns/StepList.astro';
+import SectionHeader from '../patterns/SectionHeader.astro';
 import SanityImage from '../ui/SanityImage.astro';
 import type { SanityImageSource } from '../../sanity/image';
 
@@ -13,14 +14,14 @@ interface Step {
 	image: SanityImageSource;
 }
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'title'> {
 	eyebrow?: string;
 	title: string;
 	steps: Step[];
 	activeStep?: StepListProps['activeIndex'];
 }
 
-const { eyebrow, title, steps, activeStep = 0 } = Astro.props;
+const { eyebrow, title, steps, activeStep = 0, class: className, ...attrs } = Astro.props;
 
 // One photo per step; they swap as the accordion moves (script below)
 const photos = steps.map(({ image }) => {
@@ -38,8 +39,14 @@ const photos = steps.map(({ image }) => {
 {/*
 	Desktop: at least 110% of the viewport tall, with extra bottom padding so the accordion stays readable before the next section arrives.
 	data-stack: while the next section slides over it, this one scrolls at half speed and dims to 40% black (src/scripts/stack.ts)
+	Fade-in order: eyebrow → title (the photo has its own mask reveal)
 */}
-<section class="theme-dark grid bg-surface text-ink lg:min-h-[110svh] lg:grid-cols-2" data-stack="0.5" data-stack-dim="0.4">
+<section
+	class:list={['theme-dark grid bg-surface text-ink lg:min-h-[110svh] lg:grid-cols-2', className]}
+	data-stack="0.5"
+	data-stack-dim="0.4"
+	{...attrs}
+>
 	{/*
 		Image reveal on arrival (src/scripts/image-reveal.ts); one photo per step, swapped as steps change (script below).
 		Parallax (global.css, desktop): photos are 20% taller than the panel and drift -8% → 8% through it.
@@ -64,12 +71,9 @@ const photos = steps.map(({ image }) => {
 	</div>
 
 	<div
-		class="flex flex-col justify-between gap-16 px-4 py-16 sm:px-6 lg:justify-center lg:gap-30 lg:pt-20 lg:pb-60 lg:pr-[max(--spacing(6),calc((100vw-var(--container-content))/2))] lg:pl-20"
+		class="flex flex-col justify-between gap-16 px-(--page-inset) py-16 lg:justify-center lg:gap-30 lg:pt-20 lg:pb-60 lg:pl-20"
 	>
-		<header class="flex max-w-112.25 flex-col gap-6">
-			{eyebrow && <p class="text-body" data-reveal>{eyebrow}</p>}
-			<h2 class="text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
-		</header>
+		<SectionHeader eyebrow={eyebrow} title={title} class="max-w-112.25" reveal />
 
 		<StepList steps={steps.map(({ title, description }) => ({ title, description }))} activeIndex={activeStep} />
 	</div>

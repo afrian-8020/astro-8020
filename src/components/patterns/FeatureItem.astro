@@ -1,14 +1,18 @@
 ---
-interface Props {
+import type { HTMLAttributes } from 'astro/types';
+import { revealAttrs, type Reveal } from '../../lib/reveal';
+
+interface Props extends Omit<HTMLAttributes<'div'>, 'title'> {
 	title: string;
 	description: string;
-	class?: string;
+	/** Fade the title and description in with its section's text (src/lib/reveal.ts) */
+	reveal?: Reveal;
 }
 
-const { title, description, class: className } = Astro.props;
+const { title, description, reveal, class: className, ...attrs } = Astro.props;
 ---
 
-<div class:list={['flex flex-col gap-2 text-ink', className]}>
-	<h2 class="font-sans font-normal text-body" data-reveal data-reveal-group="features">{title}</h2>
-	<p class="text-body-sm" data-reveal data-reveal-group="features">{description}</p>
+<div class:list={['flex flex-col gap-2 text-ink', className]} {...attrs}>
+	<h2 class="font-sans font-normal text-body" {...revealAttrs(reveal)}>{title}</h2>
+	<p class="text-body-sm" {...revealAttrs(reveal)}>{description}</p>
 </div>

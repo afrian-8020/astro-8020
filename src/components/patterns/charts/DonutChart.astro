@@ -71,11 +71,8 @@ const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8
 
 <script>
 	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
-	import { replayOnHover } from '../../../scripts/chart-hover';
+	import { playChart } from '../../../scripts/chart-motion';
 	import { richMotion } from '../../../scripts/motion';
-
-	gsap.registerPlugin(ScrollTrigger);
 
 	// Desktop only (see motion.ts) — elsewhere the chart shows in its final state
 	if (richMotion) {
@@ -123,8 +120,7 @@ const dotsPath = 'M210.8 61C189.9 63.8 170.5 73 155.2 87.5C140 101.9 129.6 120.8
 				.to(dotsMask, { strokeDashoffset: 0, duration: 0.6, ease: 'power1.out' }, 0.95)
 				.to(chevron, { scale: 1, opacity: 1, duration: 0.45, ease: 'back.out(2.5)' }, 1.4);
 
-			ScrollTrigger.create({ trigger: svg, start: '20% bottom', once: true, onEnter: () => tl.play() });
-			replayOnHover(svg, tl, renderCount);
+			playChart(svg, tl, renderCount);
 		});
 	}
 </script>

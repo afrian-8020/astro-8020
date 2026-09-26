@@ -1,11 +1,11 @@
 ---
-interface Props {
-	class?: string;
-}
+import type { HTMLAttributes } from 'astro/types';
 
-const { class: className } = Astro.props;
+type Props = HTMLAttributes<'div'>;
+
+const { class: className, ...attrs } = Astro.props;
 ---
 
-<div class:list={['flex flex-wrap items-center gap-2', className]}>
+<div class:list={['flex flex-wrap items-center gap-2', className]} {...attrs}>
 	<slot />
 </div>

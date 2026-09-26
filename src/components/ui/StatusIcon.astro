@@ -1,19 +1,19 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import CheckCircle from '../../assets/icons/check-circle.svg';
 import XCircle from '../../assets/icons/x-circle.svg';
 
-interface Props {
+interface Props extends HTMLAttributes<'span'> {
 	/** true renders a filled check, false a muted cross */
 	included: boolean;
 	/** Screen-reader text for each state */
 	labels?: { included: string; excluded: string };
-	class?: string;
 }
 
-const { included, labels = { included: 'Included', excluded: 'Not included' }, class: className } = Astro.props;
+const { included, labels = { included: 'Included', excluded: 'Not included' }, class: className, ...attrs } = Astro.props;
 ---
 
-<span class:list={['relative inline-flex align-middle text-ink', className]}>
+<span class:list={['relative inline-flex align-middle text-ink', className]} {...attrs}>
 	{included ? <CheckCircle class="size-6" aria-hidden="true" /> : <XCircle class="size-6 opacity-40" aria-hidden="true" />}
 	<span class="sr-only">{included ? labels.included : labels.excluded}</span>
 </span>

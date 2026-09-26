@@ -1,16 +1,20 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import Button from '../ui/Button.astro';
+import { revealAttrs, type Reveal } from '../../lib/reveal';
+import type { Link } from '../../lib/types';
 
-interface Props {
+interface Props extends HTMLAttributes<'div'> {
 	text: string;
-	cta: { href: string; label: string };
-	class?: string;
+	cta: Link;
+	/** Fade the text and button in with its section's text (src/lib/reveal.ts) */
+	reveal?: Reveal;
 }
 
-const { text, cta, class: className } = Astro.props;
+const { text, cta, reveal, class: className, ...attrs } = Astro.props;
 ---
 
-<div class:list={['flex flex-wrap items-center justify-center gap-4 text-center text-ink', className]}>
-	<p class="text-body" data-reveal>{text}</p>
-	<Button href={cta.href} reveal>{cta.label}</Button>
+<div class:list={['flex flex-wrap items-center justify-center gap-4 text-center text-ink', className]} {...attrs}>
+	<p class="text-body" {...revealAttrs(reveal)}>{text}</p>
+	<Button href={cta.href} reveal={reveal}>{cta.label}</Button>
 </div>

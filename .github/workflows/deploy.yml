@@ -25,7 +25,20 @@ env:
   PUBLIC_SANITY_DATASET: production
 
 jobs:
+  # Safety check: stops the deploy if the code has a type error (the same check as `npm run check`)
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
   build:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

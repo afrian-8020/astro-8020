@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import SanityImage from '../ui/SanityImage.astro';
 import type { SanityImageSource } from '../../sanity/image';
 import BadgeCheck from '../../assets/icons/badge-check.svg';
@@ -6,22 +7,28 @@ import Container from '../ui/Container.astro';
 import Badge from '../ui/Badge.astro';
 import Button from '../ui/Button.astro';
 import FeatureItem from '../patterns/FeatureItem.astro';
+import type { Link } from '../../lib/types';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'title'> {
 	title: string;
 	description: string;
 	/** Includes its alt text and hotspot */
 	image: SanityImageSource;
 	badge?: string;
-	cta?: { href: string; label: string };
+	cta?: Link;
 	features?: { title: string; description: string }[];
 }
 
-const { title, description, image, badge, cta, features = [] } = Astro.props;
+const { title, description, image, badge, cta, features = [], class: className, ...attrs } = Astro.props;
 ---
 
 {/* data-parallax-scope + the image's data-parallax: background drifts slower than the page (global.css, desktop) */}
-<section class="theme-dark relative isolate flex min-h-svh overflow-hidden bg-surface pt-24 pb-10 lg:min-h-205" data-parallax-scope>
+{/* Fade-in order: title → description → button → all three features together */}
+<section
+	class:list={['theme-dark relative isolate flex min-h-svh overflow-hidden bg-surface pt-24 pb-10 lg:min-h-205', className]}
+	data-parallax-scope
+	{...attrs}
+>
 	<SanityImage
 		image={image}
 		widths={[640, 1024, 1456]}
@@ -59,7 +66,7 @@ const { title, description, image, badge, cta, features = [] } = Astro.props;
 				<ul class="hidden gap-6 md:grid md:max-w-259.5 md:grid-cols-3">
 					{features.map((feature) => (
 						<li>
-							<FeatureItem {...feature} />
+							<FeatureItem {...feature} reveal={{ group: 'features' }} />
 						</li>
 					))}
 				</ul>

@@ -1,34 +1,26 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Navbar from '../components/layout/Navbar.astro';
 import Hero from '../components/sections/Hero.astro';
 import ProductShowcase from '../components/sections/ProductShowcase.astro';
 import Comparison from '../components/sections/Comparison.astro';
 import HowItWorks from '../components/sections/HowItWorks.astro';
 import Science from '../components/sections/Science.astro';
 import StatCard from '../components/patterns/StatCard.astro';
-import DonutChart from '../components/ui/charts/DonutChart.astro';
-import CurveChart from '../components/ui/charts/CurveChart.astro';
-import BarChart from '../components/ui/charts/BarChart.astro';
+import DonutChart from '../components/patterns/charts/DonutChart.astro';
+import CurveChart from '../components/patterns/charts/CurveChart.astro';
+import BarChart from '../components/patterns/charts/BarChart.astro';
 import Testimonial from '../components/sections/Testimonial.astro';
 import Articles from '../components/sections/Articles.astro';
 import Cta from '../components/sections/Cta.astro';
 import Faq from '../components/sections/Faq.astro';
 import { sanityClient } from '../sanity/client';
 import { HOME_PAGE_QUERY } from '../sanity/queries';
+import { link, need } from '../sanity/content';
 
 // All page content comes from the Home Page document in Sanity (Studio: ../studio-afrian---astro-8020)
 const page = await sanityClient.fetch(HOME_PAGE_QUERY);
 
-/** Fail the build loudly, naming the field, rather than rendering a half-empty page */
-function need<T>(value: T | null | undefined, field: string): T {
-	if (value === null || value === undefined) throw new Error(`Sanity: Home Page is missing "${field}"`);
-	return value;
-}
-const link = (value: { label: string | null; href: string | null } | null | undefined) =>
-	value?.label && value.href ? { label: value.label, href: value.href } : undefined;
-
-const home = need(page, 'the published homePage document');
+const home = need(page, 'Home Page (the published document)');
 const hero = need(home.hero, 'hero');
 const showcase = need(home.productShowcase, 'productShowcase');
 const comparison = need(home.comparison, 'comparison');
@@ -57,9 +49,7 @@ const products = (showcase.products ?? []).map((product) => ({
 const statCaptionClass = { ring: 'max-w-69.25', curves: 'max-w-63', scale: 'max-w-84.75' } as const;
 ---
 
-<BaseLayout title={home.seo?.title ?? 'Noom Med'} description={home.seo?.description ?? undefined}>
-	<Navbar slot="header" overlay />
-
+<BaseLayout title={home.seo?.title ?? 'Noom Med'} description={home.seo?.description ?? undefined} navOverlay>
 	<Hero
 		badge={hero.badge ?? undefined}
 		title={need(hero.heading, 'hero.heading')}
@@ -100,7 +90,7 @@ const statCaptionClass = { ring: 'max-w-69.25', curves: 'max-w-63', scale: 'max-
 	<Science title={need(science.heading, 'science.heading')} description={science.description ?? undefined}>
 		{
 			(science.stats ?? []).map((stat) => (
-				<StatCard caption={need(stat.caption, 'stat caption')} captionClass={stat.chart ? statCaptionClass[stat.chart] : undefined}>
+				<StatCard caption={need(stat.caption, 'stat caption')} captionClass={stat.chart ? statCaptionClass[stat.chart] : undefined} reveal>
 					{stat.chart === 'ring' && <DonutChart value={stat.figure ?? ''} label={stat.figureLabel ?? undefined} />}
 					{stat.chart === 'curves' && <CurveChart topLabel={stat.baselineLabel ?? ''} bottomLabel={stat.highlightLabel ?? ''} />}
 					{stat.chart === 'scale' && <BarChart value={stat.figure ?? ''} />}

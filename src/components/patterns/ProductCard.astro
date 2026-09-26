@@ -1,17 +1,14 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import SanityImage from '../ui/SanityImage.astro';
 import type { SanityImageSource } from '../../sanity/image';
 import Registered from '../../assets/icons/registered.svg';
 import Badge from '../ui/Badge.astro';
 import Button from '../ui/Button.astro';
 import ButtonGroup from './ButtonGroup.astro';
+import type { Link } from '../../lib/types';
 
-interface Link {
-	href: string;
-	label: string;
-}
-
-interface Props {
+interface Props extends HTMLAttributes<'article'> {
 	name: string;
 	/** Includes its alt text and hotspot */
 	image: SanityImageSource;
@@ -21,13 +18,12 @@ interface Props {
 	disclosure?: Link;
 	primaryCta?: Link;
 	secondaryCta?: Link;
-	class?: string;
 }
 
-const { name, image, badges = [], registered = false, disclosure, primaryCta, secondaryCta, class: className } = Astro.props;
+const { name, image, badges = [], registered = false, disclosure, primaryCta, secondaryCta, class: className, ...attrs } = Astro.props;
 ---
 
-<article class:list={['relative flex flex-col-reverse overflow-hidden bg-surface-white text-ink sm:flex-row', className]} data-product-card>
+<article class:list={['relative flex flex-col-reverse overflow-hidden bg-surface-white text-ink sm:flex-row', className]} data-product-card {...attrs}>
 	<div class="flex flex-1 flex-col justify-between gap-6 p-4">
 		<div class="flex flex-col gap-6">
 			{
@@ -96,12 +92,10 @@ const { name, image, badges = [], registered = false, disclosure, primaryCta, se
 
 <script>
 	import { gsap } from 'gsap';
+	import { canHover, reducedMotion } from '../../scripts/motion';
 
 	// Subtle zoom on hover — pointer devices only, skipped when the user prefers reduced motion
-	const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-	if (canHover && !reduceMotion) {
+	if (canHover && !reducedMotion) {
 		document.querySelectorAll<HTMLElement>('[data-product-card]').forEach((card) => {
 			const image = card.querySelector('[data-product-card-image]');
 			if (!image) return;

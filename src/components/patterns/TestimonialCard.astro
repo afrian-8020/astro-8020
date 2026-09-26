@@ -1,8 +1,10 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import SanityImage from '../ui/SanityImage.astro';
 import type { SanityImageSource } from '../../sanity/image';
+import { revealAttrs, type Reveal } from '../../lib/reveal';
 
-interface Props {
+interface Props extends HTMLAttributes<'article'> {
 	quote: string;
 	author: string;
 	/** Includes its alt text and hotspot */
@@ -12,10 +14,15 @@ interface Props {
 	 * With `countFrom`, the number in `value` counts up from it, starting with the portrait's reveal.
 	 */
 	stat?: { value: string; label: string; countFrom?: number };
-	class?: string;
+	/**
+	 * Animate the card in with its section (src/lib/reveal.ts): the portrait's mask reveal, the quote, author
+	 * and stat fading in, and the stat counting up. The stat always starts with the section's first text, so
+	 * its count-up (synced to the portrait) is visible from its first frame.
+	 */
+	reveal?: Reveal;
 }
 
-const { quote, author, image, stat, class: className } = Astro.props;
+const { quote, author, image, stat, reveal, class: className, ...attrs } = Astro.props;
 
 // Split "70lbs" into prefix / number / suffix so only the number counts
 const statParts = stat?.value.match(/^(\D*)(\d+)(.*)$/);
@@ -23,10 +30,10 @@ const statParts = stat?.value.match(/^(\D*)(\d+)(.*)$/);
 
 {/* Optional `controls` slot renders bottom-right (e.g. slider arrows) */}
 {/* Tablet: side by side but grows with the quote (min 440px); desktop: fixed 440px as designed */}
-<article class:list={['flex flex-col text-ink md:min-h-110 md:flex-row lg:h-110', className]} data-count-scope>
+<article class:list={['flex flex-col text-ink md:min-h-110 md:flex-row lg:h-110', className]} data-count-scope {...attrs}>
 	{/* White base stays put while the portrait's mask grows over it (image reveal: src/scripts/image-reveal.ts) */}
 	<div class="relative aspect-4/3 shrink-0 bg-surface-white md:aspect-auto md:w-83.25">
-		<div class="absolute inset-0 overflow-hidden bg-surface-inverse" data-image-reveal>
+		<div class="absolute inset-0 overflow-hidden bg-surface-inverse" data-image-reveal={reveal ? "" : undefined}>
 			<SanityImage
 				image={image}
 				widths={[400, 800, 1125]}
@@ -40,17 +47,16 @@ const statParts = stat?.value.match(/^(\D*)(\d+)(.*)$/);
 	<div class="flex flex-1 flex-col justify-between gap-10 bg-surface-white p-6 md:p-10">
 		<figure class="flex max-w-163.75 flex-col gap-4">
 			<blockquote class="text-body-lg lg:text-quote">
-				<p data-reveal>{quote}</p>
+				<p {...revealAttrs(reveal)}>{quote}</p>
 			</blockquote>
-			<figcaption class="text-body" data-reveal>— {author}</figcaption>
+			<figcaption class="text-body" {...revealAttrs(reveal)}>— {author}</figcaption>
 		</figure>
 
 		<div class="flex items-end justify-between gap-6">
 			{
 				stat && (
 					<p class="flex flex-col gap-2 text-ink-accent">
-						{/* Revealed with the first text so the count-up (synced to the portrait) is visible from its first frame */}
-						<span class="font-display text-h3 font-light md:text-h2" data-reveal data-reveal-start>
+						<span class="font-display text-h3 font-light md:text-h2" {...revealAttrs(reveal && { start: true })}>
 							{statParts && stat.countFrom !== undefined ? (
 								<>
 									{statParts[1]}
@@ -63,7 +69,7 @@ const statParts = stat?.value.match(/^(\D*)(\d+)(.*)$/);
 								stat.value
 							)}
 						</span>
-						<span class="text-body" data-reveal>{stat.label}</span>
+						<span class="text-body" {...revealAttrs(reveal)}>{stat.label}</span>
 					</p>
 				)
 			}

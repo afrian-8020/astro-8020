@@ -1,23 +1,31 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import SanityImage from '../ui/SanityImage.astro';
 import type { SanityImageSource } from '../../sanity/image';
 import Container from '../ui/Container.astro';
 import Button from '../ui/Button.astro';
+import SectionHeader from '../patterns/SectionHeader.astro';
+import type { Link } from '../../lib/types';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'title'> {
 	title: string;
 	description?: string;
-	cta: { href: string; label: string };
+	cta: Link;
 	/** Includes its alt text and hotspot */
 	image: SanityImageSource;
 }
 
-const { title, description, cta, image } = Astro.props;
+const { title, description, cta, image, class: className, ...attrs } = Astro.props;
 ---
 
 {/* Full-bleed closing CTA: copy sits in the sky area, subjects anchored to the bottom edge */}
 {/* data-parallax-scope + the image's data-parallax: background drifts slower than the page (global.css, desktop) */}
-<section class="theme-dark relative isolate flex min-h-150 overflow-hidden bg-surface pt-20 text-ink lg:min-h-185 lg:pt-30" data-parallax-scope>
+{/* Fade-in order: title → description → button */}
+<section
+	class:list={['theme-dark relative isolate flex min-h-150 overflow-hidden bg-surface pt-20 text-ink lg:min-h-185 lg:pt-30', className]}
+	data-parallax-scope
+	{...attrs}
+>
 	<SanityImage
 		image={image}
 		widths={[768, 1024, 1456]}
@@ -28,9 +36,9 @@ const { title, description, cta, image } = Astro.props;
 		data-parallax
 	/>
 
-	<Container class="flex flex-col items-center gap-8 text-center">
-		<h2 class="text-h3 md:text-h2 lg:text-h1" data-reveal>{title}</h2>
-		{description && <p class="max-w-155 text-body" data-reveal data-subheading>{description}</p>}
-		<Button href={cta.href} reveal>{cta.label}</Button>
+	<Container>
+		<SectionHeader title={title} description={description} align="center" size="display" descriptionClass="max-w-155" reveal>
+			<Button href={cta.href} reveal>{cta.label}</Button>
+		</SectionHeader>
 	</Container>
 </section>

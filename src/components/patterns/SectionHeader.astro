@@ -1,0 +1,42 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import { revealAttrs, type Reveal } from '../../lib/reveal';
+
+interface Props extends Omit<HTMLAttributes<'header'>, 'title'> {
+	title: string;
+	description?: string;
+	/** Small line above the title */
+	eyebrow?: string;
+	align?: 'left' | 'center';
+	/** section: the standard section title · display: the largest title, for a closing call to action */
+	size?: 'section' | 'display';
+	/** Max width for the description so it wraps like the design (a Tailwind max-w-* class) */
+	descriptionClass?: string;
+	/** Fade the eyebrow, title and description in, one after another (src/lib/reveal.ts) */
+	reveal?: Reveal;
+}
+
+const { title, description, eyebrow, align = 'left', size = 'section', descriptionClass, reveal, class: className, ...attrs } = Astro.props;
+
+// Titles step down on smaller screens
+const sizes = {
+	section: 'text-h4 md:text-h3 lg:text-h2',
+	display: 'text-h3 md:text-h2 lg:text-h1',
+};
+---
+
+{/* A section's title block. Anything in the default slot (a link, a button) goes below the description. */}
+<header class:list={['flex flex-col gap-8', align === 'center' && 'items-center text-center', className]} {...attrs}>
+	{
+		eyebrow ? (
+			<div class="flex flex-col gap-6">
+				<p class="text-body" {...revealAttrs(reveal)}>{eyebrow}</p>
+				<h2 class={sizes[size]} {...revealAttrs(reveal)}>{title}</h2>
+			</div>
+		) : (
+			<h2 class={sizes[size]} {...revealAttrs(reveal)}>{title}</h2>
+		)
+	}
+	{description && <p class:list={['text-body', descriptionClass]} {...revealAttrs(reveal)}>{description}</p>}
+	<slot />
+</header>

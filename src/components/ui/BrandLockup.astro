@@ -1,18 +1,18 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import Logo from '../../assets/logo.svg';
 
-interface Props {
+interface Props extends HTMLAttributes<'span'> {
 	/** Small label under the logo, e.g. a product line */
 	sublabel?: string;
 	/** Accessible name for the whole lockup */
 	label: string;
-	class?: string;
 }
 
-const { sublabel, label, class: className } = Astro.props;
+const { sublabel, label, class: className, ...attrs } = Astro.props;
 ---
 
-<span class:list={['relative inline-flex flex-col items-center gap-1 text-ink', className]}>
+<span class:list={['relative inline-flex flex-col items-center gap-1 text-ink', className]} {...attrs}>
 	<Logo class="h-4 w-auto sm:h-5" aria-hidden="true" />
 	{sublabel && <span class="text-body-xs" aria-hidden="true">{sublabel}</span>}
 	<span class="sr-only">{label}</span>

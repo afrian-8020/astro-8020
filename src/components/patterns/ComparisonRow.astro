@@ -1,17 +1,21 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import StatusIcon from '../ui/StatusIcon.astro';
+import { revealAttrs, type Reveal } from '../../lib/reveal';
 
-interface Props {
+interface Props extends HTMLAttributes<'tr'> {
 	label: string;
 	/** One entry per compared column, in column order */
 	values: boolean[];
+	/** Fade the label in with its section's text (src/lib/reveal.ts) */
+	reveal?: Reveal;
 }
 
-const { label, values } = Astro.props;
+const { label, values, reveal, class: className, ...attrs } = Astro.props;
 ---
 
-<tr class="border-t border-surface-inverse/10 last:border-b">
-	<th scope="row" class="py-4 pr-4 text-left align-middle text-body-sm font-normal md:text-body" data-reveal data-reveal-delay="0.08">{label}</th>
+<tr class:list={['border-t border-surface-inverse/10 last:border-b', className]} {...attrs}>
+	<th scope="row" class="py-4 pr-4 text-left align-middle text-body-sm font-normal md:text-body" {...revealAttrs(reveal)}>{label}</th>
 	{
 		values.map((included) => (
 			<td class="py-4 text-center align-middle leading-none">

@@ -1,39 +1,27 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import Logo from '../../assets/logo.svg';
 import MenuIcon from '../../assets/icons/menu.svg';
 import CloseIcon from '../../assets/icons/close.svg';
 import Container from '../ui/Container.astro';
 import NavLink from '../ui/NavLink.astro';
 import Button from '../ui/Button.astro';
+import type { Link } from '../../lib/types';
 
-interface Link {
-	href: string;
-	label: string;
-	hasMenu?: boolean;
-}
-
-interface Props {
-	links?: Link[];
-	cta?: { href: string; label: string };
+// Content comes from Site Settings in Sanity (fetched in BaseLayout)
+interface Props extends HTMLAttributes<'header'> {
+	/** `hasMenu` shows a dropdown chevron */
+	links: (Link & { hasMenu?: boolean })[];
+	cta: Link;
 	/**
 	 * Fixed and transparent over the first section of the page (dark theme), then switches to a solid
 	 * white bar with dark content once that section scrolls out from under it. Without it the bar is
 	 * simply sticky and solid.
 	 */
 	overlay?: boolean;
-	class?: string;
 }
 
-const {
-	links = [
-		{ href: '#', label: 'For individuals', hasMenu: true },
-		{ href: '#', label: 'For organizations', hasMenu: true },
-		{ href: '#', label: 'Company', hasMenu: true },
-	],
-	cta = { href: '#', label: 'Get started' },
-	overlay = false,
-	class: className,
-} = Astro.props;
+const { links, cta, overlay = false, class: className, ...attrs } = Astro.props;
 ---
 
 {/*
@@ -49,6 +37,7 @@ const {
 	data-navbar
 	data-overlay={overlay ? '' : undefined}
 	data-solid={overlay ? undefined : ''}
+	{...attrs}
 >
 	{/* Desktop: the bar grows slightly taller once it's solid (past the hero) */}
 	<Container class="flex items-center justify-between gap-6 py-3 transition-[padding] duration-300 ease-in-out lg:group-data-solid/nav:py-4">

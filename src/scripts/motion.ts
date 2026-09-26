@@ -10,3 +10,6 @@
  */
 export const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const richMotion = !reducedMotion && window.matchMedia('(min-width: 64rem)').matches;
+
+/** A mouse or trackpad is the main pointer: hover effects apply (touch taps shouldn't trigger them) */
+export const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;

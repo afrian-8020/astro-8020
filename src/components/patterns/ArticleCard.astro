@@ -1,24 +1,24 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import SanityImage from '../ui/SanityImage.astro';
 import type { SanityImageSource } from '../../sanity/image';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'article'>, 'title'> {
 	title: string;
 	href: string;
 	/** ISO date, e.g. "2025-08-21" — displayed as "Aug 21, 2025" */
 	date: string;
 	/** Includes its alt text and hotspot */
 	image: SanityImageSource;
-	class?: string;
 }
 
-const { title, href, date, image, class: className } = Astro.props;
+const { title, href, date, image, class: className, ...attrs } = Astro.props;
 
 const formatted = new Date(`${date}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 ---
 
 {/* Whole card is clickable via the title link's overlay */}
-<article class:list={['group relative flex gap-4 text-ink sm:gap-6', className]}>
+<article class:list={['group relative flex gap-4 text-ink sm:gap-6', className]} {...attrs}>
 	<div class="relative aspect-3/2 w-30 shrink-0 overflow-hidden sm:w-60">
 		<SanityImage image={image} widths={[240, 480, 720]} sizes="(min-width: 640px) 240px, 120px" quality={90} class="absolute inset-0 size-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-105" />
 	</div>

@@ -1,14 +1,16 @@
 ---
-interface Props {
+import type { HTMLAttributes } from 'astro/types';
+import type { Link } from '../../lib/types';
+
+interface Props extends Omit<HTMLAttributes<'div'>, 'title'> {
 	title: string;
-	links: { href: string; label: string }[];
-	class?: string;
+	links: Link[];
 }
 
-const { title, links, class: className } = Astro.props;
+const { title, links, class: className, ...attrs } = Astro.props;
 ---
 
-<div class:list={['flex flex-col gap-6 text-ink', className]}>
+<div class:list={['flex flex-col gap-6 text-ink', className]} {...attrs}>
 	<h2 class="font-sans text-eyebrow font-normal uppercase">{title}</h2>
 	<ul class="flex flex-col gap-2 text-body-sm">
 		{

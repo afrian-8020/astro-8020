@@ -1,22 +1,24 @@
 ---
-import type { ComponentProps } from 'astro/types';
+import type { ComponentProps, HTMLAttributes } from 'astro/types';
 import Container from '../ui/Container.astro';
 import FaqItem from '../patterns/FaqItem.astro';
+import SectionHeader from '../patterns/SectionHeader.astro';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'title'> {
 	title: string;
 	items: Omit<ComponentProps<typeof FaqItem>, 'group'>[];
 	/** Legal footnotes under the list; use "\n" inside a string for a line break without a gap */
 	footnotes?: string[];
 }
 
-const { title, items, footnotes = [] } = Astro.props;
+const { title, items, footnotes = [], class: className, ...attrs } = Astro.props;
 ---
 
-<section class="bg-surface py-20 text-ink lg:py-30">
+{/* Fade-in: the title only */}
+<section class:list={['bg-surface py-20 text-ink lg:py-30', className]} {...attrs}>
 	<Container>
 		<div class="mx-auto flex max-w-230 flex-col gap-14 lg:gap-20">
-			<h2 class="text-center text-h4 md:text-h3 lg:text-h2" data-reveal>{title}</h2>
+			<SectionHeader title={title} align="center" reveal />
 
 			<div class="flex flex-col gap-4">
 				{items.map((item) => <FaqItem {...item} group="faq" />)}

@@ -1,6 +1,8 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import BrandLockup from '../ui/BrandLockup.astro';
 import ComparisonRow from './ComparisonRow.astro';
+import type { Reveal } from '../../lib/reveal';
 
 interface Column {
 	label: string;
@@ -8,20 +10,21 @@ interface Column {
 	brand?: { sublabel?: string };
 }
 
-interface Props {
+interface Props extends HTMLAttributes<'table'> {
 	/** Accessible caption describing the comparison */
 	caption: string;
 	/** Header for the feature column — visually hidden */
 	featureLabel?: string;
 	columns: Column[];
 	rows: { label: string; values: boolean[] }[];
-	class?: string;
+	/** Fade each row's label in, one after another (src/lib/reveal.ts) */
+	reveal?: Reveal;
 }
 
-const { caption, featureLabel = 'Feature', columns, rows, class: className } = Astro.props;
+const { caption, featureLabel = 'Feature', columns, rows, reveal, class: className, ...attrs } = Astro.props;
 ---
 
-<table class:list={['relative w-full table-fixed border-collapse text-ink', className]}>
+<table class:list={['relative w-full table-fixed border-collapse text-ink', className]} {...attrs}>
 	<caption class="sr-only">{caption}</caption>
 	<thead>
 		<tr>
@@ -36,6 +39,6 @@ const { caption, featureLabel = 'Feature', columns, rows, class: className } = A
 		</tr>
 	</thead>
 	<tbody>
-		{rows.map((row) => <ComparisonRow {...row} />)}
+		{rows.map((row) => <ComparisonRow {...row} reveal={reveal} />)}
 	</tbody>
 </table>

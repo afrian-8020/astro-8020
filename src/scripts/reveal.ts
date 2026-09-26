@@ -1,7 +1,7 @@
 /*
  * Line-by-line text reveal, one sequence per section.
  *
- * Mark text with `data-reveal`. When 20% of a section has entered the viewport, every marked element
+ * Mark text with `data-reveal` (in a section), or pass a component its `reveal` prop (src/lib/reveal.ts). When 20% of a section has entered the viewport, every marked element
  * inside it fades in line by line, in document order. Lines stay in place — no mask, no movement.
  *
  * Optional timing, per element:
@@ -23,7 +23,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import { countUp, resetCounters } from './count';
-import { richMotion } from './motion';
+import { reducedMotion, richMotion } from './motion';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -37,7 +37,7 @@ const done = () => {
 };
 
 const init = () => {
-	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
+	if (reducedMotion) return done();
 
 	document.querySelectorAll<HTMLElement>('main > section').forEach((section) => {
 		// Skip text with no layout (hidden slides, rows hidden at this breakpoint) — there are no lines to split
