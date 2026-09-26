@@ -90,17 +90,34 @@ const photos = steps.map((step) => {
 
 <script>
 	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { reducedMotion, richMotion } from '../../scripts/motion';
 	import { playImageReveal } from '../../scripts/image-reveal';
 
 	// Swap to the open step's photo, layered on top of the current one. Desktop: the same mask + zoom reveal
 	// as on arrival. Tablet/mobile: a plain crossfade (decorative effects are desktop-only, see motion.ts).
 	// Safe under rapid switching: only the active swap runs, and cleanup always targets the latest step.
+	// Swaps use an ease-out mask (unlike the arrival's ease-in-out) so the new photo moves the instant a step is clicked.
+	const SWAP_MASK = { duration: 0.9, ease: 'power3.out' };
+
 	document.querySelectorAll<HTMLElement>('[data-hiw-photos]').forEach((media) => {
 		const photos = [...media.querySelectorAll<HTMLElement>('[data-hiw-photo]')];
 		const section = media.closest('section');
 		let current = Math.max(0, photos.findIndex((photo) => photo.style.opacity !== '0'));
 		let swap: gsap.core.Timeline | gsap.core.Tween | null = null;
+
+		// Fetch and decode every step photo before the section arrives, so the first swap to each isn't held up
+		// by loading or decoding a hidden image
+		ScrollTrigger.create({
+			trigger: media,
+			start: 'top bottom+=100%',
+			once: true,
+			onEnter: () =>
+				media.querySelectorAll('img').forEach((img) => {
+					img.loading = 'eager';
+					img.decode().catch(() => {});
+				}),
+		});
 
 		// Hide every photo except the latest one, once its swap has fully covered them
 		const settle = () =>
@@ -130,7 +147,7 @@ const photos = steps.map((step) => {
 
 			if (richMotion) {
 				incoming.style.willChange = 'clip-path';
-				swap = playImageReveal(incoming, incoming.querySelector('img'), 1.5, settle);
+				swap = playImageReveal(incoming, incoming.querySelector('img'), 1.5, settle, SWAP_MASK);
 			} else {
 				swap = gsap.fromTo(
 					incoming,

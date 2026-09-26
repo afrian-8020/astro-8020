@@ -217,6 +217,7 @@
  * Stacked sections (src/scripts/stack.ts): while the next section slides over a [data-stack] section,
  * it drifts down by --stack-lag × viewport height (so it scrolls slower) and its overlay fades to --stack-dim.
  * Scroll-driven animations run on the compositor, in the same frame as the scroll — no JS lag or jitter.
+ * Longhands only: the CSS minifier folds `animation-timeline` into the `animation` shorthand, which browsers reject.
  * Range: from the section's bottom edge reaching the viewport bottom (entry-crossing 100%)
  * to it reaching the viewport top (exit-crossing 100%). Transforms don't affect the timeline, so no feedback loop.
  */
@@ -236,18 +237,23 @@
 @supports (animation-timeline: view()) {
 	@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) {
 		[data-stack] {
+			--stack-range: entry-crossing 100% exit-crossing 100%; /* via a var so the minifier can't rewrite it */
 			view-timeline: --stack block;
-			animation: stack-drift linear both;
+			animation-name: stack-drift;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
 			animation-timeline: --stack;
-			animation-range: entry-crossing 100% exit-crossing 100%;
+			animation-range: var(--stack-range);
 			will-change: translate;
 		}
 
 		/* Driven by the section's timeline, so the overlay stays exactly in step with the drift */
 		[data-stack-overlay] {
-			animation: stack-dim linear both;
+			animation-name: stack-dim;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
 			animation-timeline: --stack;
-			animation-range: entry-crossing 100% exit-crossing 100%;
+			animation-range: var(--stack-range);
 		}
 	}
 }
@@ -275,7 +281,9 @@
 		}
 
 		[data-parallax] {
-			animation: parallax-shift linear both;
+			animation-name: parallax-shift;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
 			animation-timeline: --parallax;
 			animation-range: var(--parallax-range, cover);
 		}
@@ -301,7 +309,9 @@
 		}
 
 		[data-footer-reveal-content] {
-			animation: footer-rise linear both;
+			animation-name: footer-rise;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
 			animation-timeline: --footer;
 			animation-range: entry 0% entry 100%;
 		}

@@ -25,10 +25,17 @@ const SHOWN = 'inset(0% 0% 0% 0%)';
 /**
  * The same reveal on demand (e.g. swapping photos): `mask` grows top → bottom while `image` settles from
  * `scale` to 100%. Returns the timeline; `onComplete` runs when the mask is fully open.
+ * `maskTiming` overrides the mask's duration/ease (e.g. an ease-out so a click responds instantly).
  */
-export const playImageReveal = (mask: Element, image: Element | null, scale = 1.5, onComplete?: () => void) => {
+export const playImageReveal = (
+	mask: Element,
+	image: Element | null,
+	scale = 1.5,
+	onComplete?: () => void,
+	maskTiming: gsap.TweenVars = MASK,
+) => {
 	const tl = gsap.timeline({ onComplete });
-	tl.fromTo(mask, { clipPath: HIDDEN }, { clipPath: SHOWN, ...MASK, overwrite: true }, 0);
+	tl.fromTo(mask, { clipPath: HIDDEN }, { clipPath: SHOWN, ...maskTiming, overwrite: true }, 0);
 	if (image) tl.fromTo(image, { scale }, { scale: 1, ...ZOOM, overwrite: true }, 0);
 	return tl;
 };
